@@ -2,7 +2,6 @@ function addTerrain ( scene ) {
   // Fog
   scene.fog = new THREE.Fog( 0x605570, 10, 200 );
   gridHelper = new THREE.GridHelper( 100, 10 );    
-  gridHelper.position.y = -3;
   scene.add( gridHelper );
 
   // Light
@@ -32,7 +31,6 @@ function addTerrain ( scene ) {
       });
   planeMesh = new THREE.Mesh( plane, groundMaterial );
   planeMesh.rotation.x = - Math.PI / 2;
-  planeMesh.position.y = -3;
   planeMesh.receiveShadow = true;
   scene.add( planeMesh );
 

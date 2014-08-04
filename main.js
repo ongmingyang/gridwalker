@@ -1,9 +1,9 @@
 var SCREEN_WIDTH = window.innerWidth,
 SCREEN_HEIGHT = window.innerHeight;
 
-var camera, scene, renderer, light, plane;
+var camera, scene, renderer;
 
-var player, controls, gridHelper;
+var player, controls;
 
 //var _playerHeight = 5;
 
@@ -13,8 +13,6 @@ render();
 function init() {
   // Camera
   camera = new THREE.PerspectiveCamera( 45, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 1000 );
-  camera.position.set( 0, 0, 0 );
-  //camera.lookAt( 0, _playerHeight, 0 );
 
   // Scene
   scene = new THREE.Scene();
@@ -35,6 +33,7 @@ function init() {
   //controls = new THREE.FirstPersonControls( camera, renderer.domElement );
   player = new playerState( exampleMap );
   controls = new playerControls( camera, renderer, player );
+  camera.position.copy( player.cameraPosition );
   window.addEventListener( 'resize', onWindowResize, false );
 
 }
