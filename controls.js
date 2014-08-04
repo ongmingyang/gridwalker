@@ -64,7 +64,11 @@ playerControls = function ( object, domElement, playerState ) {
       case 40: /*down*/
       case 83: /*S*/ 
         this.moveBackward = true; 
-        this.playerState.moveBackward();
+        this.playerState.lookLeft();
+        this.playerState.lookLeft();
+        this.playerState.moveForward();
+        this.playerState.lookRight();
+        this.playerState.lookRight();
         currentSteps = this.walkSteps;
         break;
 

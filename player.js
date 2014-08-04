@@ -53,14 +53,4 @@ playerState = function ( map ) {
       this.facingTile = this.facingTile.adjacent[this.facing];
     }
   }
-
-  this.moveBackward = function () {
-    destinationTile = this.tile.adjacent[turn[this.facing]["back"]];
-    if (destinationTile.walkable) {
-      this.facingTile = this.tile;
-      this.tile = destinationTile;
-      this.position = destinationTile.position;
-    }
-  }
-
 }
