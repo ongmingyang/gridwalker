@@ -47,13 +47,20 @@ playerState = function ( map ) {
   }
 
   this.moveForward = function () {
-    this.position = this.facingTile.position;
-    this.facingTile = this.tile.adjacent[this.facing];
+    if (this.facingTile.walkable) {
+      this.tile = this.facingTile;
+      this.position = this.tile.position;
+      this.facingTile = this.facingTile.adjacent[this.facing];
+    }
   }
 
-  this.moveBackwards = function () {
-    this.position = this.tile.adjacent[turn[this.facing]["back"]]
-    this.facingTile = this.tile.adjacent[this.facing];
+  this.moveBackward = function () {
+    destinationTile = this.tile.adjacent[turn[this.facing]["back"]];
+    if (destinationTile.walkable) {
+      this.facingTile = this.tile;
+      this.tile = destinationTile;
+      this.position = destinationTile.position;
+    }
   }
 
 }
