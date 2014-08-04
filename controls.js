@@ -109,6 +109,10 @@ playerControls = function ( object, domElement, playerState ) {
     this.oldPosition.add( v );
     this.object.position.copy( this.oldPosition );
 
+    // Capture edge cases based on some tolerance (0.01)
+    // Happens when player walks into a wall; need to end freeze loop
+    if (delta.length() <= 0.01) currentSteps = 0;
+
     this.oldTarget.add( delta );
     this.object.lookAt( this.oldTarget );
   }

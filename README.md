@@ -1,7 +1,7 @@
 TODO
 ----
 
-Dependency Injection (use angular?)
+Dependency management (see milestones)
 
 Mouse event listeners
 
