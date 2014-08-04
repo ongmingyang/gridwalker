@@ -7,7 +7,7 @@
 playerState = function ( map ) {
 
   this.map = map;
-  this.tile = map.startVertex;
+  this.tile = map.startTile;
   this.position = this.tile.position;
   this.facing = "north" // begin facing north
   this.facingTile = this.tile.adjacent[this.facing];
@@ -34,26 +34,26 @@ playerState = function ( map ) {
       right: "north",
       back: "east"
     }
-  }
+  };
 
-  function lookRight() {
+  this.lookRight = function () {
     this.facing = turn[this.facing]["right"];
-    this.facingTile = this.position.adjacent[this.facing];
+    this.facingTile = this.tile.adjacent[this.facing];
   }
 
-  function lookLeft() {
+  this.lookLeft = function () {
     this.facing = turn[this.facing]["left"];
-    this.facingTile = this.position.adjacent[this.facing];
+    this.facingTile = this.tile.adjacent[this.facing];
   }
 
-  function moveForward() {
+  this.moveForward = function () {
     this.position = this.facingTile.position;
-    this.facingTile = this.position.adjacent[this.facing];
+    this.facingTile = this.tile.adjacent[this.facing];
   }
 
-  function moveBackwards() {
+  this.moveBackwards = function () {
     this.position = this.tile.adjacent[turn[this.facing]["back"]]
-    this.facingTile = this.position.adjacent[this.facing];
+    this.facingTile = this.tile.adjacent[this.facing];
   }
 
 }
