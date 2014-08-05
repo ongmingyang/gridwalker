@@ -10,6 +10,9 @@ module.exports = (grunt) ->
       lodash:
         src: 'node_modules/lodash/lodash.js'
         dest: 'build/lodash.js'
+      three:
+        src: 'node_modules/three/three.min.js'
+        dest: 'build/three.js'
 
     coffee:
       compile:
@@ -29,6 +32,7 @@ module.exports = (grunt) ->
           template: 'index.html'
         files:
           'index.html': [
+            'build/three.js'
             'build/lodash.js'
             'build/local.js'
             'index.js'

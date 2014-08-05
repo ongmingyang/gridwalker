@@ -104,8 +104,8 @@ playerControls = (object, domElement, playerState) ->
 
   # Binds key event listeners to scope
   bind = (scope, fn) ->
-    ->
-      fn.apply scope, arguments_
+    return ->
+      fn.apply scope, arguments
       return
   window.addEventListener "keydown", bind(this, @onKeyDown), false
 

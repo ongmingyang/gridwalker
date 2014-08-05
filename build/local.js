@@ -109,7 +109,7 @@ playerControls = function(object, domElement, playerState) {
   };
   bind = function(scope, fn) {
     return function() {
-      fn.apply(scope, arguments_);
+      fn.apply(scope, arguments);
     };
   };
   window.addEventListener("keydown", bind(this, this.onKeyDown), false);
