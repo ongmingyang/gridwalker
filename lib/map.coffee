@@ -1,4 +1,4 @@
-class mapClass
+class Map
   constructor: (vertices) ->
     #  Accepts vertices as an object of THREE.Vector3()'s 
     @tiles = _.mapValues vertices, (vector) ->

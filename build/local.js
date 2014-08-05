@@ -14,7 +14,7 @@ example = function() {
     4: new THREE.Vector3(0, 0, -10),
     5: new THREE.Vector3(20, 0, 0)
   };
-  map = new mapClass(vertices);
+  map = new Map(vertices);
   map.link(0, 1, "north");
   map.link(0, 3, "south");
   map.link(0, 2, "east");
@@ -169,10 +169,10 @@ render = function() {
   controls.update();
 };
 
-var mapClass, tileClass;
+var Map, tileClass;
 
-mapClass = (function() {
-  function mapClass(vertices) {
+Map = (function() {
+  function Map(vertices) {
     this.tiles = _.mapValues(vertices, function(vector) {
       return new tileClass({
         position: vector,
@@ -183,7 +183,7 @@ mapClass = (function() {
     this.startTile = this.tiles[0];
   }
 
-  mapClass.prototype.link = function(from, to, direction) {
+  Map.prototype.link = function(from, to, direction) {
     var opposite;
     opposite = {
       north: "south",
@@ -204,7 +204,7 @@ mapClass = (function() {
     TODO: wall class should extend tile class
    */
 
-  mapClass.prototype.computeBoundary = function() {
+  Map.prototype.computeBoundary = function() {
     var axes, i, walls;
     i = 0;
     walls = this.walls;
@@ -229,7 +229,7 @@ mapClass = (function() {
     });
   };
 
-  return mapClass;
+  return Map;
 
 })();
 

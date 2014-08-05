@@ -18,16 +18,16 @@ init = (map) ->
   addTerrain scene
   
   # Renderer
-  renderer = new THREE.WebGLRenderer(antialias: true)
+  renderer = new THREE.WebGLRenderer
+    antialias: true
   renderer.setClearColor 0x000000
   renderer.setSize SCREEN_WIDTH, SCREEN_HEIGHT
   renderer.shadowMapEnabled = true
   document.body.appendChild renderer.domElement
   
   # Browser controls
-  #controls = new THREE.FirstPersonControls( camera, renderer.domElement );
-  player = new Player(map)
-  controls = new Controls(camera, renderer, player)
+  player = new Player map
+  controls = new Controls camera, renderer, player
   camera.position.copy player.cameraPosition
   window.addEventListener "resize", onWindowResize, false
   return

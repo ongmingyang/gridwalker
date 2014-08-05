@@ -10,7 +10,7 @@ example = ->
     4: new THREE.Vector3(0, 0, -10)
     5: new THREE.Vector3(20, 0, 0)
 
-  map = new mapClass(vertices)
+  map = new Map vertices
 
   map.link 0, 1, "north"
   map.link 0, 3, "south"
