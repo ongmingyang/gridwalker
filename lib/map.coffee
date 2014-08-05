@@ -1,20 +1,17 @@
-mapClass = (vertices) ->
-  
-  #  Accepts vertices as an object of THREE.Vector3()'s 
-  @tiles = _.mapValues(vertices, (vector) ->
-    tile = new tileClass(
-      position: vector
-      walkable: true
-    )
-    tile
-  )
-  
-  # The walls object will be populated later with this.computeBoundary
-  @walls = {}
-  @startTile = @tiles[0]
-  
+class mapClass
+  constructor: (vertices) ->
+    #  Accepts vertices as an object of THREE.Vector3()'s 
+    @tiles = _.mapValues vertices, (vector) ->
+      new tileClass
+        position: vector
+        walkable: true
+    
+    # The walls object will be populated later with this.computeBoundary
+    @walls = {}
+    @startTile = @tiles[0]
+    
   # Links vertices
-  @link = (from, to, direction) ->
+  link: (from, to, direction) ->
     opposite =
       north: "south"
       south: "north"
@@ -33,7 +30,7 @@ mapClass = (vertices) ->
     TODO: it should be possible to custom define wall tiles in the future
     TODO: wall class should extend tile class
   ###
-  @computeBoundary = ->
+  computeBoundary: ->
     i = 0 # counter for number of walls
     walls = @walls # reference object for walls
     axes =
@@ -45,30 +42,27 @@ mapClass = (vertices) ->
     _.forOwn @tiles, (tile, key) ->
       _.forOwn tile.adjacent, (obj, direction) ->
         if _.isNull(obj)
-          walls[i] = new tileClass(
+          walls[i] = new tileClass
             position: tile.position.clone()
             walkable: false
-          )
+
           walls[i].position.add axes[direction]
           tile.adjacent[direction] = walls[i]
           i++
         return
-
       return
 
-    return
+class tileClass
+  constructor: (init) ->
+    if _.isEmpty(init)
+      console.log "WARNING: empty tile initialised!"
+      return
 
-  return
-
-tileClass = (init) ->
-  if _.isEmpty(init)
-    console.log "WARNING: empty tile initialised!"
-    return
-  @position = init.position or new THREE.Vector3()
-  @walkable = init.walkable or false
-  @adjacent =
-    north: init.north or null
-    south: init.south or null
-    east: init.east or null
-    west: init.west or null
+    @position = init.position or new THREE.Vector3()
+    @walkable = init.walkable or false
+    @adjacent =
+      north: init.north or null
+      south: init.south or null
+      east: init.east or null
+      west: init.west or null
 

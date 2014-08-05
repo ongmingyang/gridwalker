@@ -16,20 +16,22 @@ module.exports = (grunt) ->
         options:
           bare: true
         files:
-          'build/index.js': [
+          'build/local.js': [
             'maps/*.coffee'
             'lib/*.coffee'
             'lib/**/*.coffee'
           ]
 
     injector:
-      local_dependencies:
+      index:
         options:
           addRootSlash: false
+          template: 'index.html'
         files:
           'index.html': [
             'build/lodash.js'
-            'build/index.js'
+            'build/local.js'
+            'index.js'
           ]
 
   # Load npm tasks.

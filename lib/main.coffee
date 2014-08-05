@@ -6,10 +6,7 @@ renderer = undefined
 player = undefined
 controls = undefined
 
-init()
-render()
-
-init = ->
+init = (map) ->
   
   # Camera
   camera = new THREE.PerspectiveCamera(45, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 1000)
@@ -29,7 +26,7 @@ init = ->
   
   # Browser controls
   #controls = new THREE.FirstPersonControls( camera, renderer.domElement );
-  player = new playerState(exampleMap)
+  player = new playerState(map)
   controls = new playerControls(camera, renderer, player)
   camera.position.copy player.cameraPosition
   window.addEventListener "resize", onWindowResize, false
