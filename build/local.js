@@ -33,18 +33,29 @@ example = function() {
  */
 var Controls;
 
-Controls = function(object, domElement, playerState) {
-  var bind, currentSteps;
-  this.object = object;
-  this.domElement = domElement;
-  this.playerState = playerState;
-  this.oldTarget = this.playerState.facingTarget.clone();
-  this.oldPosition = this.playerState.cameraPosition.clone();
-  this.walkSteps = 20;
-  this.lookSteps = 15;
-  currentSteps = 0;
-  this.freeze = false;
-  this.onKeyDown = function(event) {
+Controls = (function() {
+  var bind;
+
+  function Controls(object, domElement, playerState) {
+    this.object = object;
+    this.domElement = domElement;
+    this.playerState = playerState;
+    this.oldTarget = this.playerState.facingTarget.clone();
+    this.oldPosition = this.playerState.cameraPosition.clone();
+    this._walkSteps = 20;
+    this._lookSteps = 15;
+    this.currentSteps = 0;
+    this.freeze = false;
+    $(window).keydown(bind(this, this.onKeyDown));
+  }
+
+  bind = function(scope, fn) {
+    return function() {
+      fn.apply(scope, arguments);
+    };
+  };
+
+  Controls.prototype.onKeyDown = function(event) {
     event.preventDefault();
     if (this.freeze) {
       return;
@@ -56,11 +67,11 @@ Controls = function(object, domElement, playerState) {
       case 38:
       case 87:
         this.playerState.moveForward();
-        return currentSteps = this.walkSteps;
+        return this.currentSteps = this._walkSteps;
       case 37:
       case 65:
         this.playerState.lookLeft();
-        return currentSteps = this.lookSteps;
+        return this.currentSteps = this._lookSteps;
       case 40:
       case 83:
         this.playerState.lookLeft();
@@ -68,52 +79,50 @@ Controls = function(object, domElement, playerState) {
         this.playerState.moveForward();
         this.playerState.lookRight();
         this.playerState.lookRight();
-        return currentSteps = this.walkSteps;
+        return this.currentSteps = this._walkSteps;
       case 39:
       case 68:
         this.playerState.lookRight();
-        return currentSteps = this.lookSteps;
+        return this.currentSteps = this._lookSteps;
       case 81:
         this.playerState.lookLeft();
         this.playerState.moveForward();
         this.playerState.lookRight();
-        return currentSteps = this.walkSteps;
+        return this.currentSteps = this._walkSteps;
       case 69:
         this.playerState.lookRight();
         this.playerState.moveForward();
         this.playerState.lookLeft();
-        return currentSteps = this.walkSteps;
+        return this.currentSteps = this._walkSteps;
     }
   };
-  this.update = function() {
+
+  Controls.prototype.update = function() {
     var delta, v;
-    if (currentSteps <= 0) {
+    if (this.currentSteps <= 0) {
       this.freeze = false;
       return;
     } else {
-      currentSteps--;
+      this.currentSteps--;
     }
     delta = new THREE.Vector3();
     delta.subVectors(this.playerState.facingTarget, this.oldTarget);
-    delta.divideScalar(currentSteps);
+    delta.divideScalar(this.currentSteps);
     v = new THREE.Vector3();
     v.subVectors(this.playerState.cameraPosition, this.oldPosition);
-    v.divideScalar(currentSteps);
+    v.divideScalar(this.currentSteps);
     this.oldPosition.add(v);
     this.object.position.copy(this.oldPosition);
     if (delta.length() <= 0.01) {
-      currentSteps = 0;
+      this.currentSteps = 0;
     }
     this.oldTarget.add(delta);
     this.object.lookAt(this.oldTarget);
   };
-  bind = function(scope, fn) {
-    return function() {
-      fn.apply(scope, arguments);
-    };
-  };
-  $(window).keydown(bind(this, this.onKeyDown));
-};
+
+  return Controls;
+
+})();
 
 var SCREEN_HEIGHT, SCREEN_WIDTH, camera, controls, init, onWindowResize, player, render, renderer, scene;
 
