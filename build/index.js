@@ -168,6 +168,79 @@ render = function() {
   controls.update();
 };
 
+var mapClass, tileClass;
+
+mapClass = function(vertices) {
+  this.tiles = _.mapValues(vertices, function(vector) {
+    var tile;
+    tile = new tileClass({
+      position: vector,
+      walkable: true
+    });
+    return tile;
+  });
+  this.walls = {};
+  this.startTile = this.tiles[0];
+  this.link = function(from, to, direction) {
+    var opposite;
+    opposite = {
+      north: "south",
+      south: "north",
+      east: "west",
+      west: "east"
+    };
+    this.tiles[from].adjacent[direction] = this.tiles[to];
+    this.tiles[to].adjacent[opposite[direction]] = this.tiles[from];
+  };
+
+  /*
+    Call this function after all vertices have been linked
+    Function creates "wall" tiles for each null adjacent reference
+    so that the player can compute the camera view
+    TODO: it should be possible to custom define wall tiles in the future
+    TODO: wall class should extend tile class
+   */
+  this.computeBoundary = function() {
+    var axes, i, walls;
+    i = 0;
+    walls = this.walls;
+    axes = {
+      north: new THREE.Vector3(10, 0, 0),
+      south: new THREE.Vector3(-10, 0, 0),
+      east: new THREE.Vector3(0, 0, 10),
+      west: new THREE.Vector3(0, 0, -10)
+    };
+    _.forOwn(this.tiles, function(tile, key) {
+      _.forOwn(tile.adjacent, function(obj, direction) {
+        if (_.isNull(obj)) {
+          walls[i] = new tileClass({
+            position: tile.position.clone(),
+            walkable: false
+          });
+          walls[i].position.add(axes[direction]);
+          tile.adjacent[direction] = walls[i];
+          i++;
+        }
+      });
+    });
+  };
+};
+
+tileClass = function(init) {
+  if (_.isEmpty(init)) {
+    console.log("WARNING: empty tile initialised!");
+    return;
+  }
+  this.position = init.position || new THREE.Vector3();
+  this.walkable = init.walkable || false;
+  return this.adjacent = {
+    north: init.north || null,
+    south: init.south || null,
+    east: init.east || null,
+    west: init.west || null
+  };
+};
+
 
 /*
   The playerState class is a representation of the player on

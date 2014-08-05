@@ -23,12 +23,14 @@ module.exports = (grunt) ->
           ]
 
     injector:
-        local_dependencies:
-          files:
-            'index.html': [
-              'build/lodash.js'
-              'build/index.js'
-            ]
+      local_dependencies:
+        options:
+          addRootSlash: false
+        files:
+          'index.html': [
+            'build/lodash.js'
+            'build/index.js'
+          ]
 
   # Load npm tasks.
   grunt.loadNpmTasks 'grunt-contrib-copy'
