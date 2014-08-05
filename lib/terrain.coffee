@@ -1,9 +1,3 @@
-###
-  The playerState class is a representation of the player on
-  the map. The player faces a direction, and has a set of adjacent
-  tiles. The player's camera is defined and updated in this.computeCamera
-###
-
 addTerrain = (scene) ->
   
   # Fog
