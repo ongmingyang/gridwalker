@@ -1,12 +1,11 @@
 ###
-  The goal of the playerControls object is to make the
+  The goal of the Controls object is to make the
   camera (object) follow the playerState (player)'s position
   in a smooth fashion, and invoke playerState actions upon
   triggering key events
 ###
 
-playerControls = (object, domElement, playerState) ->
-  
+Controls = (object, domElement, playerState) ->
   # The camera, the dom element, and the player state
   @object = object
   @domElement = domElement
@@ -107,6 +106,8 @@ playerControls = (object, domElement, playerState) ->
     return ->
       fn.apply scope, arguments
       return
-  window.addEventListener "keydown", bind(this, @onKeyDown), false
 
+  # TODO: use library. jquery or angular??
+  window.addEventListener "keydown", bind(this, @onKeyDown), false
   return
+

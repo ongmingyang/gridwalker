@@ -26,14 +26,14 @@ example = function() {
 
 
 /*
-  The goal of the playerControls object is to make the
+  The goal of the Controls object is to make the
   camera (object) follow the playerState (player)'s position
   in a smooth fashion, and invoke playerState actions upon
   triggering key events
  */
-var playerControls;
+var Controls;
 
-playerControls = function(object, domElement, playerState) {
+Controls = function(object, domElement, playerState) {
   var bind, currentSteps;
   this.object = object;
   this.domElement = domElement;
@@ -142,8 +142,8 @@ init = function(map) {
   renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
   renderer.shadowMapEnabled = true;
   document.body.appendChild(renderer.domElement);
-  player = new playerState(map);
-  controls = new playerControls(camera, renderer, player);
+  player = new Player(map);
+  controls = new Controls(camera, renderer, player);
   camera.position.copy(player.cameraPosition);
   window.addEventListener("resize", onWindowResize, false);
 };
@@ -246,38 +246,39 @@ tileClass = (function() {
 
 
 /*
-  The playerState class is a representation of the player on
+  The Player class is a representation of the player on
   the map. The player faces a direction, and has a set of adjacent
   tiles. The player's camera is defined and updated in this.computeCamera
  */
-var playerState;
+var Player;
 
-playerState = (function() {
-  function playerState(map) {
-    var turn, _playerHeight;
-    _playerHeight = 3;
-    turn = {
-      north: {
-        left: "west",
-        right: "east",
-        back: "south"
-      },
-      south: {
-        left: "east",
-        right: "west",
-        back: "north"
-      },
-      east: {
-        left: "north",
-        right: "south",
-        back: "west"
-      },
-      west: {
-        left: "south",
-        right: "north",
-        back: "east"
-      }
-    };
+Player = (function() {
+  Player.prototype._playerHeight = 3;
+
+  Player.prototype.turn = {
+    north: {
+      left: "west",
+      right: "east",
+      back: "south"
+    },
+    south: {
+      left: "east",
+      right: "west",
+      back: "north"
+    },
+    east: {
+      left: "north",
+      right: "south",
+      back: "west"
+    },
+    west: {
+      left: "south",
+      right: "north",
+      back: "east"
+    }
+  };
+
+  function Player(map) {
     this.map = map;
     this.tile = map.startTile;
     this.position = this.tile.position;
@@ -286,26 +287,26 @@ playerState = (function() {
     this.computeCamera();
   }
 
-  playerState.prototype.computeCamera = function() {
+  Player.prototype.computeCamera = function() {
     this.facingTarget = this.facingTile.position.clone();
     this.facingTarget.y += this._playerHeight;
     this.cameraPosition = this.position.clone();
     this.cameraPosition.y += this._playerHeight;
   };
 
-  playerState.prototype.lookRight = function() {
+  Player.prototype.lookRight = function() {
     this.facing = this.turn[this.facing]["right"];
     this.facingTile = this.tile.adjacent[this.facing];
     this.computeCamera();
   };
 
-  playerState.prototype.lookLeft = function() {
+  Player.prototype.lookLeft = function() {
     this.facing = this.turn[this.facing]["left"];
     this.facingTile = this.tile.adjacent[this.facing];
     this.computeCamera();
   };
 
-  playerState.prototype.moveForward = function() {
+  Player.prototype.moveForward = function() {
     if (this.facingTile.walkable) {
       this.tile = this.facingTile;
       this.position = this.tile.position;
@@ -314,7 +315,7 @@ playerState = (function() {
     }
   };
 
-  return playerState;
+  return Player;
 
 })();
 

@@ -26,8 +26,8 @@ init = (map) ->
   
   # Browser controls
   #controls = new THREE.FirstPersonControls( camera, renderer.domElement );
-  player = new playerState(map)
-  controls = new playerControls(camera, renderer, player)
+  player = new Player(map)
+  controls = new Controls(camera, renderer, player)
   camera.position.copy player.cameraPosition
   window.addEventListener "resize", onWindowResize, false
   return
