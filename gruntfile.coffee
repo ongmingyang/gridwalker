@@ -7,9 +7,6 @@ module.exports = (grunt) ->
     pkg: grunt.file.readJSON('package.json')
 
     copy:
-      lodash:
-        src: 'node_modules/lodash/lodash.js'
-        dest: 'build/lodash.js'
       three:
         src: 'node_modules/three/three.min.js'
         dest: 'build/three.js'
@@ -33,7 +30,6 @@ module.exports = (grunt) ->
         files:
           'index.html': [
             'build/three.js'
-            'build/lodash.js'
             'build/local.js'
             'index.js'
           ]

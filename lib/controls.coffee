@@ -101,13 +101,12 @@ Controls = (object, domElement, playerState) ->
     @object.lookAt @oldTarget
     return
 
-  # Binds key event listeners to scope
+  # Binds key event listeners to window
   bind = (scope, fn) ->
     return ->
       fn.apply scope, arguments
       return
+  $( window ).keydown bind(this, @onKeyDown)
 
-  # TODO: use library. jquery or angular??
-  window.addEventListener "keydown", bind(this, @onKeyDown), false
   return
 

@@ -112,7 +112,7 @@ Controls = function(object, domElement, playerState) {
       fn.apply(scope, arguments);
     };
   };
-  window.addEventListener("keydown", bind(this, this.onKeyDown), false);
+  $(window).keydown(bind(this, this.onKeyDown));
 };
 
 var SCREEN_HEIGHT, SCREEN_WIDTH, camera, controls, init, onWindowResize, player, render, renderer, scene;
