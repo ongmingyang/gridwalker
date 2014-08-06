@@ -55,7 +55,6 @@ class Map
   displayTiles: (scene) ->
     _.forOwn @tiles, (tile, key) ->
       if tile.object
-        debugger
         scene.add tile.object
 
 class Tile

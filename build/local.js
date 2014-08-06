@@ -8,11 +8,17 @@ example = function() {
   var map, vertices;
   vertices = {
     0: new THREE.Vector3(),
-    1: new THREE.Vector3(10, 1, 0),
+    1: new THREE.Vector3(10, 0, 0),
     2: new THREE.Vector3(0, 0, 10),
     3: new THREE.Vector3(-10, 0, 0),
     4: new THREE.Vector3(0, 0, -10),
-    5: new THREE.Vector3(20, 2, 0)
+    5: new THREE.Vector3(20, 1, 0),
+    6: new THREE.Vector3(30, 2, 0),
+    7: new THREE.Vector3(30, 1, 10),
+    8: new THREE.Vector3(0, 1, 20),
+    9: new THREE.Vector3(10, 2, 20),
+    10: new THREE.Vector3(20, 3, 20),
+    11: new THREE.Vector3(30, 2, 20)
   };
   map = new Map(vertices);
   map.link(0, 1, "north");
@@ -20,6 +26,13 @@ example = function() {
   map.link(0, 2, "east");
   map.link(0, 4, "west");
   map.link(1, 5, "north");
+  map.link(5, 6, "north");
+  map.link(6, 7, "east");
+  map.link(2, 8, "east");
+  map.link(8, 9, "north");
+  map.link(9, 10, "north");
+  map.link(10, 11, "north");
+  map.link(11, 7, "west");
   map.computeBoundary();
   return map;
 };
@@ -42,6 +55,8 @@ Controls = (function() {
     this.playerState = playerState;
     this.oldTarget = this.playerState.facingTarget.clone();
     this.oldPosition = this.playerState.cameraPosition.clone();
+    this.object.position.copy(this.oldPosition);
+    this.object.lookAt(this.oldTarget);
     this._walkSteps = 20;
     this._lookSteps = 15;
     this.currentSteps = 0;
@@ -141,7 +156,7 @@ player = void 0;
 controls = void 0;
 
 init = function(map) {
-  camera = new THREE.PerspectiveCamera(45, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 1000);
+  camera = new THREE.PerspectiveCamera(45, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 10000);
   scene = new THREE.Scene();
   addTerrain(scene);
   map.displayTiles(scene);
@@ -154,7 +169,6 @@ init = function(map) {
   document.body.appendChild(renderer.domElement);
   player = new Player(map);
   controls = new Controls(camera, renderer, player);
-  camera.position.copy(player.cameraPosition);
   window.addEventListener("resize", onWindowResize, false);
 };
 
@@ -234,7 +248,6 @@ Map = (function() {
   Map.prototype.displayTiles = function(scene) {
     return _.forOwn(this.tiles, function(tile, key) {
       if (tile.object) {
-        debugger;
         return scene.add(tile.object);
       }
     });
@@ -372,7 +385,7 @@ addTerrain = function(scene) {
   planeMesh.rotation.x = -Math.PI / 2;
   planeMesh.receiveShadow = true;
   scene.add(planeMesh);
-  geometry = new THREE.SphereGeometry(500, 32, 12);
+  geometry = new THREE.SphereGeometry(4000, 32, 12);
   vertexShader = document.getElementById("vertexShader").textContent;
   fragmentShader = document.getElementById("fragmentShader").textContent;
   uniforms = {

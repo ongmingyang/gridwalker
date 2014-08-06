@@ -36,7 +36,7 @@ addTerrain = (scene) ->
   scene.add planeMesh
   
   # Add skybox
-  geometry = new THREE.SphereGeometry(500, 32, 12)
+  geometry = new THREE.SphereGeometry(4000, 32, 12)
   vertexShader = document.getElementById("vertexShader").textContent
   fragmentShader = document.getElementById("fragmentShader").textContent
   uniforms =

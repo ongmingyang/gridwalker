@@ -9,7 +9,7 @@ controls = undefined
 init = (map) ->
   
   # Camera
-  camera = new THREE.PerspectiveCamera(45, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 1000)
+  camera = new THREE.PerspectiveCamera(45, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 10000)
   
   # Scene
   scene = new THREE.Scene()
@@ -29,7 +29,6 @@ init = (map) ->
   # Browser controls
   player = new Player map
   controls = new Controls camera, renderer, player
-  camera.position.copy player.cameraPosition
   window.addEventListener "resize", onWindowResize, false
   return
 

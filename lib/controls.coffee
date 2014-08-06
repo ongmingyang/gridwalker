@@ -16,6 +16,10 @@ class Controls
     @oldTarget = @playerState.facingTarget.clone()
     @oldPosition = @playerState.cameraPosition.clone()
 
+    # Initialise camera position and view
+    @object.position.copy @oldPosition
+    @object.lookAt @oldTarget
+
     @_walkSteps = 20 # Frames taken till move to next tile
     @_lookSteps = 15 # Frames taken till facing correct direction
     @currentSteps = 0 # Number of steps till completion of move action
