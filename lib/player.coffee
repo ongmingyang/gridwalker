@@ -45,7 +45,6 @@ class Player
     @cameraPosition.y += @_playerHeight
     return
 
-  
   lookRight: ->
     @facing = @turn[@facing]["right"]
     @facingTile = @tile.adjacent[@facing]

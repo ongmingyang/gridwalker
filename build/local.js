@@ -8,11 +8,11 @@ example = function() {
   var map, vertices;
   vertices = {
     0: new THREE.Vector3(),
-    1: new THREE.Vector3(10, 0, 0),
+    1: new THREE.Vector3(10, 1, 0),
     2: new THREE.Vector3(0, 0, 10),
     3: new THREE.Vector3(-10, 0, 0),
     4: new THREE.Vector3(0, 0, -10),
-    5: new THREE.Vector3(20, 0, 0)
+    5: new THREE.Vector3(20, 2, 0)
   };
   map = new Map(vertices);
   map.link(0, 1, "north");
@@ -144,6 +144,7 @@ init = function(map) {
   camera = new THREE.PerspectiveCamera(45, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 1000);
   scene = new THREE.Scene();
   addTerrain(scene);
+  map.displayTiles(scene);
   renderer = new THREE.WebGLRenderer({
     antialias: true
   });
@@ -169,14 +170,15 @@ render = function() {
   controls.update();
 };
 
-var Map, tileClass;
+var Map, Tile;
 
 Map = (function() {
   function Map(vertices) {
     this.tiles = _.mapValues(vertices, function(vector) {
-      return new tileClass({
+      return new Tile({
         position: vector,
-        walkable: true
+        walkable: true,
+        object: tile1(vector)
       });
     });
     this.walls = {};
@@ -217,7 +219,7 @@ Map = (function() {
     return _.forOwn(this.tiles, function(tile, key) {
       _.forOwn(tile.adjacent, function(obj, direction) {
         if (_.isNull(obj)) {
-          walls[i] = new tileClass({
+          walls[i] = new Tile({
             position: tile.position.clone(),
             walkable: false
           });
@@ -229,18 +231,28 @@ Map = (function() {
     });
   };
 
+  Map.prototype.displayTiles = function(scene) {
+    return _.forOwn(this.tiles, function(tile, key) {
+      if (tile.object) {
+        debugger;
+        return scene.add(tile.object);
+      }
+    });
+  };
+
   return Map;
 
 })();
 
-tileClass = (function() {
-  function tileClass(init) {
+Tile = (function() {
+  function Tile(init) {
     if (_.isEmpty(init)) {
       console.log("WARNING: empty tile initialised!");
       return;
     }
     this.position = init.position || new THREE.Vector3();
     this.walkable = init.walkable || false;
+    this.object = init.object || null;
     this.adjacent = {
       north: init.north || null,
       south: init.south || null,
@@ -249,7 +261,7 @@ tileClass = (function() {
     };
   }
 
-  return tileClass;
+  return Tile;
 
 })();
 
@@ -391,4 +403,19 @@ addTerrain = function(scene) {
   });
   skyBox = new THREE.Mesh(geometry, material);
   return scene.add(skyBox);
+};
+
+var tile1;
+
+tile1 = function(position) {
+  var cube, geometry, material;
+  geometry = new THREE.BoxGeometry(10, 3, 10);
+  material = new THREE.MeshBasicMaterial({
+    color: 0x00ff00,
+    wireframe: true
+  });
+  cube = new THREE.Mesh(geometry, material);
+  cube.position.copy(position);
+  cube.position.y -= 1.5;
+  return cube;
 };

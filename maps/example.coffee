@@ -4,11 +4,11 @@
 example = ->
   vertices =
     0: new THREE.Vector3()
-    1: new THREE.Vector3(10, 0, 0)
+    1: new THREE.Vector3(10, 1, 0)
     2: new THREE.Vector3(0, 0, 10)
     3: new THREE.Vector3(-10, 0, 0)
     4: new THREE.Vector3(0, 0, -10)
-    5: new THREE.Vector3(20, 0, 0)
+    5: new THREE.Vector3(20, 2, 0)
 
   map = new Map vertices
 

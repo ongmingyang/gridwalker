@@ -2,9 +2,10 @@ class Map
   constructor: (vertices) ->
     #  Accepts vertices as an object of THREE.Vector3()'s 
     @tiles = _.mapValues vertices, (vector) ->
-      new tileClass
+      new Tile
         position: vector
         walkable: true
+        object: tile1 vector
     
     # The walls object will be populated later with this.computeBoundary
     @walls = {}
@@ -21,7 +22,6 @@ class Map
     @tiles[from].adjacent[direction] = @tiles[to]
     @tiles[to].adjacent[opposite[direction]] = @tiles[from]
     return
-
   
   ###
     Call this function after all vertices have been linked
@@ -42,7 +42,7 @@ class Map
     _.forOwn @tiles, (tile, key) ->
       _.forOwn tile.adjacent, (obj, direction) ->
         if _.isNull(obj)
-          walls[i] = new tileClass
+          walls[i] = new Tile
             position: tile.position.clone()
             walkable: false
 
@@ -52,7 +52,13 @@ class Map
         return
       return
 
-class tileClass
+  displayTiles: (scene) ->
+    _.forOwn @tiles, (tile, key) ->
+      if tile.object
+        debugger
+        scene.add tile.object
+
+class Tile
   constructor: (init) ->
     if _.isEmpty(init)
       console.log "WARNING: empty tile initialised!"
@@ -60,6 +66,7 @@ class tileClass
 
     @position = init.position or new THREE.Vector3()
     @walkable = init.walkable or false
+    @object = init.object or null
     @adjacent =
       north: init.north or null
       south: init.south or null

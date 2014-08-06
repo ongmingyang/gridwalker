@@ -14,8 +14,9 @@ init = (map) ->
   # Scene
   scene = new THREE.Scene()
   
-  # Add terrain features
+  # Add terrain and map features
   addTerrain scene
+  map.displayTiles scene
   
   # Renderer
   renderer = new THREE.WebGLRenderer
