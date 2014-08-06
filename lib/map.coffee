@@ -22,13 +22,21 @@ class Map
     @tiles[from].adjacent[direction] = @tiles[to]
     @tiles[to].adjacent[opposite[direction]] = @tiles[from]
     return
+
+  # Unlinks vertices
+  unlink: (from, to) ->
+    _.forOwn @tiles[from].adjacent, (tile, key) ->
+      @tiles[to] = null if tile is @tiles[to]
+    _.forOwn @tiles[to].adjacent, (tile, key) ->
+      @tiles[from] = null if tile is @tiles[from]
+    return
   
   ###
     Call this function after all vertices have been linked
     Function creates "wall" tiles for each null adjacent reference
     so that the player can compute the camera view
     TODO: it should be possible to custom define wall tiles in the future
-    TODO: wall class should extend tile class
+    TODO: wall class should extend tile class? discuss
   ###
   computeBoundary: ->
     i = 0 # counter for number of walls
@@ -53,6 +61,7 @@ class Map
       return
 
   displayTiles: (scene) ->
+    # TODO Make sure to merge geometries first for performance!
     _.forOwn @tiles, (tile, key) ->
       if tile.object
         scene.add tile.object

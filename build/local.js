@@ -211,13 +211,26 @@ Map = (function() {
     this.tiles[to].adjacent[opposite[direction]] = this.tiles[from];
   };
 
+  Map.prototype.unlink = function(from, to) {
+    _.forOwn(this.tiles[from].adjacent, function(tile, key) {
+      if (tile === this.tiles[to]) {
+        return this.tiles[to] = null;
+      }
+    });
+    _.forOwn(this.tiles[to].adjacent, function(tile, key) {
+      if (tile === this.tiles[from]) {
+        return this.tiles[from] = null;
+      }
+    });
+  };
+
 
   /*
     Call this function after all vertices have been linked
     Function creates "wall" tiles for each null adjacent reference
     so that the player can compute the camera view
     TODO: it should be possible to custom define wall tiles in the future
-    TODO: wall class should extend tile class
+    TODO: wall class should extend tile class? discuss
    */
 
   Map.prototype.computeBoundary = function() {
