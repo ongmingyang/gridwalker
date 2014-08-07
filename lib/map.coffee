@@ -61,10 +61,15 @@ class Map
       return
 
   displayTiles: (scene) ->
-    # TODO Make sure to merge geometries first for performance!
+    #TODO get rid of superfluous geometry, and inherit mesh properties?
+    tileMap = new THREE.CubeGeometry(1,1,1)
     _.forOwn @tiles, (tile, key) ->
       if tile.object
-        scene.add tile.object
+        tile.object.updateMatrix()
+        tileMap.merge tile.object.geometry, tile.object.matrix
+
+    tileMapMesh = new THREE.Mesh tileMap, new THREE.MeshNormalMaterial()
+    scene.add tileMapMesh
 
 class Tile
   constructor: (init) ->

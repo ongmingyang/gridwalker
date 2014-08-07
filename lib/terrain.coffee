@@ -2,8 +2,8 @@ addTerrain = (scene) ->
   
   # Fog
   scene.fog = new THREE.Fog(0x605570, 10, 200)
-  gridHelper = new THREE.GridHelper(100, 10)
-  scene.add gridHelper
+  #gridHelper = new THREE.GridHelper(100, 10)
+  #scene.add gridHelper
   
   # Light
   light = new THREE.DirectionalLight(0xffdd66, 1.5)
@@ -21,6 +21,7 @@ addTerrain = (scene) ->
   scene.add new THREE.AmbientLight(0x404040)
   
   # Ground texture
+  ###
   plane = new THREE.PlaneGeometry(500, 500)
   groundTexture = THREE.ImageUtils.loadTexture("textures/grass.jpg")
   groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping
@@ -28,12 +29,14 @@ addTerrain = (scene) ->
   groundTexture.anisotropy = 16
   groundMaterial = new THREE.MeshPhongMaterial
     color: 0x663399
+    opacity: 0
     specular: 0x111111
-    map: groundTexture
+    #map: groundTexture
   planeMesh = new THREE.Mesh(plane, groundMaterial)
   planeMesh.rotation.x = -Math.PI / 2
   planeMesh.receiveShadow = true
   scene.add planeMesh
+  ###
   
   # Add skybox
   geometry = new THREE.SphereGeometry(4000, 32, 12)

@@ -259,11 +259,16 @@ Map = (function() {
   };
 
   Map.prototype.displayTiles = function(scene) {
-    return _.forOwn(this.tiles, function(tile, key) {
+    var tileMap, tileMapMesh;
+    tileMap = new THREE.CubeGeometry(1, 1, 1);
+    _.forOwn(this.tiles, function(tile, key) {
       if (tile.object) {
-        return scene.add(tile.object);
+        tile.object.updateMatrix();
+        return tileMap.merge(tile.object.geometry, tile.object.matrix);
       }
     });
+    tileMapMesh = new THREE.Mesh(tileMap, new THREE.MeshNormalMaterial());
+    return scene.add(tileMapMesh);
   };
 
   return Map;
@@ -369,10 +374,8 @@ Player = (function() {
 var addTerrain;
 
 addTerrain = function(scene) {
-  var d, fragmentShader, geometry, gridHelper, groundMaterial, groundTexture, light, material, plane, planeMesh, skyBox, uniforms, vertexShader;
+  var d, fragmentShader, geometry, light, material, skyBox, uniforms, vertexShader;
   scene.fog = new THREE.Fog(0x605570, 10, 200);
-  gridHelper = new THREE.GridHelper(100, 10);
-  scene.add(gridHelper);
   light = new THREE.DirectionalLight(0xffdd66, 1.5);
   light.position.set(-150, 150, 0);
   light.castShadow = true;
@@ -384,20 +387,23 @@ addTerrain = function(scene) {
   light.shadowCameraFar = 500;
   scene.add(light);
   scene.add(new THREE.AmbientLight(0x404040));
-  plane = new THREE.PlaneGeometry(500, 500);
-  groundTexture = THREE.ImageUtils.loadTexture("textures/grass.jpg");
-  groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
-  groundTexture.repeat.set(25, 25);
-  groundTexture.anisotropy = 16;
-  groundMaterial = new THREE.MeshPhongMaterial({
-    color: 0x663399,
-    specular: 0x111111,
-    map: groundTexture
-  });
-  planeMesh = new THREE.Mesh(plane, groundMaterial);
-  planeMesh.rotation.x = -Math.PI / 2;
-  planeMesh.receiveShadow = true;
-  scene.add(planeMesh);
+
+  /*
+  plane = new THREE.PlaneGeometry(500, 500)
+  groundTexture = THREE.ImageUtils.loadTexture("textures/grass.jpg")
+  groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping
+  groundTexture.repeat.set 25, 25
+  groundTexture.anisotropy = 16
+  groundMaterial = new THREE.MeshPhongMaterial
+    color: 0x663399
+    opacity: 0
+    specular: 0x111111
+     *map: groundTexture
+  planeMesh = new THREE.Mesh(plane, groundMaterial)
+  planeMesh.rotation.x = -Math.PI / 2
+  planeMesh.receiveShadow = true
+  scene.add planeMesh
+   */
   geometry = new THREE.SphereGeometry(4000, 32, 12);
   vertexShader = document.getElementById("vertexShader").textContent;
   fragmentShader = document.getElementById("fragmentShader").textContent;
