@@ -1,4 +1,8 @@
 
+/* MAP */
+window.globalMeshes = {};
+
+
 /*
   Create an example map
  */
@@ -21,6 +25,7 @@ example = function() {
     11: new THREE.Vector3(30, 2, 20)
   };
   map = new Map(vertices);
+  map.setTile(6, window.globalMeshes.tile1);
   map.link(0, 1, "north");
   map.link(0, 3, "south");
   map.link(0, 2, "east");
@@ -141,11 +146,7 @@ Controls = (function() {
 
 })();
 
-var SCREEN_HEIGHT, SCREEN_WIDTH, camera, controls, init, onWindowResize, player, render, renderer, scene;
-
-SCREEN_WIDTH = window.innerWidth;
-
-SCREEN_HEIGHT = window.innerHeight;
+var camera, controls, init, onWindowResize, player, render, renderer, scene;
 
 camera = void 0;
 
@@ -158,6 +159,9 @@ player = void 0;
 controls = void 0;
 
 init = function(map) {
+  var SCREEN_HEIGHT, SCREEN_WIDTH;
+  SCREEN_WIDTH = window.innerWidth;
+  SCREEN_HEIGHT = window.innerHeight;
   camera = new THREE.PerspectiveCamera(45, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 10000);
   scene = new THREE.Scene();
   addTerrain(scene);
@@ -189,12 +193,12 @@ render = function() {
 var Map, Tile;
 
 Map = (function() {
-  function Map(vertices) {
+  function Map(vertices, defaultTile) {
     this.tiles = _.mapValues(vertices, function(vector) {
       return new Tile({
         position: vector,
         walkable: true,
-        object: tile1(vector)
+        object: defaultTile || window.globalMeshes.tile0.init(vector)
       });
     });
     this.walls = {};
@@ -224,6 +228,10 @@ Map = (function() {
         return this.tiles[from] = null;
       }
     });
+  };
+
+  Map.prototype.setTile = function(id, tile) {
+    return this.tiles[id].object = tile.init(this.tiles[id].object.position);
   };
 
 
@@ -261,18 +269,24 @@ Map = (function() {
   };
 
   Map.prototype.displayTiles = function(scene) {
-    var material, materials, tileMap, tileMapMesh;
-    tileMap = new THREE.BoxGeometry(1, 1, 1);
-    materials = [];
-    debugger;
+    var material, tileMap, tileMapMesh;
+    tileMap = null;
+    material = new THREE.MeshFaceMaterial(_.flatten(_.pluck(window.globalMeshes, "materials")));
     _.forOwn(this.tiles, function(tile, key) {
       if (tile.object) {
-        tile.object.updateMatrix();
-        tileMap.merge(tile.object.geometry, tile.object.matrix);
-        return materials.push(tile.object.material);
+        _.forEach(tile.object.geometry.faces, function(face) {
+          return face.materialIndex = _.findIndex(material.materials, {
+            id: face.materialIndex
+          });
+        });
+        if (tileMap == null) {
+          return tileMap = tile.object.geometry;
+        } else {
+          tile.object.updateMatrix();
+          return tileMap.merge(tile.object.geometry, tile.object.matrix);
+        }
       }
     });
-    material = new THREE.MeshFaceMaterial(materials);
     tileMapMesh = new THREE.Mesh(tileMap, material);
     tileMapMesh.receiveShadow = tileMapMesh.castShadow = true;
     return scene.add(tileMapMesh);
@@ -446,17 +460,47 @@ addTerrain = function(scene) {
   return scene.add(skyBox);
 };
 
-var tile1;
+window.globalMeshes.tile0 = {
+  materials: [
+    new THREE.MeshBasicMaterial({
+      id: 1,
+      color: 0x00ff00,
+      wireframe: true
+    })
+  ],
+  init: function(position) {
+    var cube, geometry;
+    geometry = new THREE.BoxGeometry(10, 3, 10);
+    _.forEach(geometry.vertices, function(vertex) {
+      return vertex.y -= 1.5;
+    });
+    _.forEach(geometry.faces, function(face) {
+      return face.materialIndex = 1;
+    });
+    cube = new THREE.Mesh(geometry);
+    cube.position.copy(position);
+    return cube;
+  }
+};
 
-tile1 = function(position) {
-  var cube, geometry, material;
-  geometry = new THREE.BoxGeometry(10, 3, 10);
-  material = new THREE.MeshBasicMaterial({
-    color: 0x00ff00,
-    wireframe: true
-  });
-  cube = new THREE.Mesh(geometry, material);
-  cube.position.copy(position);
-  cube.position.y -= 1.5;
-  return cube;
+window.globalMeshes.tile1 = {
+  materials: [
+    new THREE.MeshLambertMaterial({
+      id: 2,
+      color: 0xffeedd
+    })
+  ],
+  init: function(position) {
+    var cube, geometry;
+    geometry = new THREE.BoxGeometry(10, 3, 10);
+    _.forEach(geometry.vertices, function(vertex) {
+      return vertex.y -= 1.5;
+    });
+    _.forEach(geometry.faces, function(face) {
+      return face.materialIndex = 2;
+    });
+    cube = new THREE.Mesh(geometry);
+    cube.position.copy(position);
+    return cube;
+  }
 };

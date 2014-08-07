@@ -17,6 +17,7 @@ module.exports = (grunt) ->
           bare: true
         files:
           'build/local.js': [
+            'config/*.coffee'
             'maps/*.coffee'
             'lib/*.coffee'
             'lib/**/*.coffee'

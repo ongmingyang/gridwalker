@@ -1,5 +1,3 @@
-SCREEN_WIDTH = window.innerWidth
-SCREEN_HEIGHT = window.innerHeight
 camera = undefined
 scene = undefined
 renderer = undefined
@@ -7,6 +5,8 @@ player = undefined
 controls = undefined
 
 init = (map) ->
+  SCREEN_WIDTH = window.innerWidth
+  SCREEN_HEIGHT = window.innerHeight
   
   # Camera
   camera = new THREE.PerspectiveCamera(45, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 10000)

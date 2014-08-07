@@ -1,8 +1,9 @@
-window.globalMeshes.tile1 =
+window.globalMeshes.tile0 =
   materials: [
-    new THREE.MeshLambertMaterial
-      id: 2
-      color: 0xffeedd
+    new THREE.MeshBasicMaterial
+      id: 1
+      color: 0x00ff00
+      wireframe: true
   ]
 
   init: (position) ->
@@ -11,7 +12,7 @@ window.globalMeshes.tile1 =
     _.forEach geometry.vertices, (vertex) ->
       vertex.y -= 1.5
     _.forEach geometry.faces, (face) ->
-      face.materialIndex = 2
+      face.materialIndex = 1
 
     cube = new THREE.Mesh( geometry )
     cube.position.copy position

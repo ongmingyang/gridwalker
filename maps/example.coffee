@@ -18,6 +18,8 @@ example = ->
 
   map = new Map vertices
 
+  map.setTile 6, window.globalMeshes.tile1
+
   map.link 0, 1, "north"
   map.link 0, 3, "south"
   map.link 0, 2, "east"

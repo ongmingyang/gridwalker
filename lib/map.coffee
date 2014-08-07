@@ -1,11 +1,11 @@
 class Map
-  constructor: (vertices) ->
+  constructor: (vertices, defaultTile) ->
     #  Accepts vertices as an object of THREE.Vector3()'s 
     @tiles = _.mapValues vertices, (vector) ->
       new Tile
         position: vector
         walkable: true
-        object: tile1 vector
+        object: defaultTile or window.globalMeshes.tile0.init vector
     
     # The walls object will be populated later with this.computeBoundary
     @walls = {}
@@ -30,6 +30,10 @@ class Map
     _.forOwn @tiles[to].adjacent, (tile, key) ->
       @tiles[from] = null if tile is @tiles[from]
     return
+
+  # Changes the tile mesh for a single tile
+  setTile: (id, tile) ->
+    @tiles[id].object = tile.init @tiles[id].object.position
   
   ###
     Call this function after all vertices have been linked
@@ -61,18 +65,25 @@ class Map
       return
 
   displayTiles: (scene) ->
-    #TODO get rid of superfluous geometry, and inherit mesh properties?
-    #TODO http://threejs.org/docs/#Reference/Core/Face3
-    tileMap = new THREE.BoxGeometry(1,1,1)
-    materials = []
-    debugger
+    tileMap = null
+    material = new THREE.MeshFaceMaterial _.flatten _.pluck window.globalMeshes, "materials"
+
     _.forOwn @tiles, (tile, key) ->
       if tile.object
-        tile.object.updateMatrix()
-        tileMap.merge tile.object.geometry, tile.object.matrix
-        materials.push tile.object.material
 
-    material = new THREE.MeshFaceMaterial materials
+        # Assign correct material index based on collapsed array and material id
+        _.forEach tile.object.geometry.faces, (face) ->
+          face.materialIndex = _.findIndex material.materials,
+            id: face.materialIndex
+
+        # Create tileMap merged geometry object
+        unless tileMap?
+          # note first geometry must be centered at origin!
+          tileMap = tile.object.geometry
+        else
+          tile.object.updateMatrix()
+          tileMap.merge tile.object.geometry, tile.object.matrix
+
     tileMapMesh = new THREE.Mesh tileMap, material
     tileMapMesh.receiveShadow = tileMapMesh.castShadow = true
     scene.add tileMapMesh
