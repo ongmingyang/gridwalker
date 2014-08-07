@@ -47,7 +47,11 @@ example = function() {
 var Controls;
 
 Controls = (function() {
-  var bind;
+  var bind, _lookSteps, _walkSteps;
+
+  _walkSteps = 20;
+
+  _lookSteps = 15;
 
   function Controls(object, domElement, playerState) {
     this.object = object;
@@ -57,8 +61,6 @@ Controls = (function() {
     this.oldPosition = this.playerState.cameraPosition.clone();
     this.object.position.copy(this.oldPosition);
     this.object.lookAt(this.oldTarget);
-    this._walkSteps = 20;
-    this._lookSteps = 15;
     this.currentSteps = 0;
     this.freeze = false;
     $(window).keydown(bind(this, this.onKeyDown));
@@ -82,11 +84,11 @@ Controls = (function() {
       case 38:
       case 87:
         this.playerState.moveForward();
-        return this.currentSteps = this._walkSteps;
+        return this.currentSteps = _walkSteps;
       case 37:
       case 65:
         this.playerState.lookLeft();
-        return this.currentSteps = this._lookSteps;
+        return this.currentSteps = _lookSteps;
       case 40:
       case 83:
         this.playerState.lookLeft();
@@ -94,21 +96,21 @@ Controls = (function() {
         this.playerState.moveForward();
         this.playerState.lookRight();
         this.playerState.lookRight();
-        return this.currentSteps = this._walkSteps;
+        return this.currentSteps = _walkSteps;
       case 39:
       case 68:
         this.playerState.lookRight();
-        return this.currentSteps = this._lookSteps;
+        return this.currentSteps = _lookSteps;
       case 81:
         this.playerState.lookLeft();
         this.playerState.moveForward();
         this.playerState.lookRight();
-        return this.currentSteps = this._walkSteps;
+        return this.currentSteps = _walkSteps;
       case 69:
         this.playerState.lookRight();
         this.playerState.moveForward();
         this.playerState.lookLeft();
-        return this.currentSteps = this._walkSteps;
+        return this.currentSteps = _walkSteps;
     }
   };
 
@@ -259,15 +261,20 @@ Map = (function() {
   };
 
   Map.prototype.displayTiles = function(scene) {
-    var tileMap, tileMapMesh;
-    tileMap = new THREE.CubeGeometry(1, 1, 1);
+    var material, materials, tileMap, tileMapMesh;
+    tileMap = new THREE.BoxGeometry(1, 1, 1);
+    materials = [];
+    debugger;
     _.forOwn(this.tiles, function(tile, key) {
       if (tile.object) {
         tile.object.updateMatrix();
-        return tileMap.merge(tile.object.geometry, tile.object.matrix);
+        tileMap.merge(tile.object.geometry, tile.object.matrix);
+        return materials.push(tile.object.material);
       }
     });
-    tileMapMesh = new THREE.Mesh(tileMap, new THREE.MeshNormalMaterial());
+    material = new THREE.MeshFaceMaterial(materials);
+    tileMapMesh = new THREE.Mesh(tileMap, material);
+    tileMapMesh.receiveShadow = tileMapMesh.castShadow = true;
     return scene.add(tileMapMesh);
   };
 
@@ -305,9 +312,11 @@ Tile = (function() {
 var Player;
 
 Player = (function() {
-  Player.prototype._playerHeight = 3;
+  var turn, _playerHeight;
 
-  Player.prototype.turn = {
+  _playerHeight = 3;
+
+  turn = {
     north: {
       left: "west",
       right: "east",
@@ -341,19 +350,19 @@ Player = (function() {
 
   Player.prototype.computeCamera = function() {
     this.facingTarget = this.facingTile.position.clone();
-    this.facingTarget.y += this._playerHeight;
+    this.facingTarget.y += _playerHeight;
     this.cameraPosition = this.position.clone();
-    this.cameraPosition.y += this._playerHeight;
+    this.cameraPosition.y += _playerHeight;
   };
 
   Player.prototype.lookRight = function() {
-    this.facing = this.turn[this.facing]["right"];
+    this.facing = turn[this.facing]["right"];
     this.facingTile = this.tile.adjacent[this.facing];
     this.computeCamera();
   };
 
   Player.prototype.lookLeft = function() {
-    this.facing = this.turn[this.facing]["left"];
+    this.facing = turn[this.facing]["left"];
     this.facingTile = this.tile.adjacent[this.facing];
     this.computeCamera();
   };

@@ -6,6 +6,9 @@
 ###
 
 class Controls
+  _walkSteps = 20 # Frames taken till move to next tile
+  _lookSteps = 15 # Frames taken till facing correct direction
+
   constructor: (object, domElement, playerState) ->
     # The camera, the dom element, and the player state
     @object = object
@@ -20,8 +23,6 @@ class Controls
     @object.position.copy @oldPosition
     @object.lookAt @oldTarget
 
-    @_walkSteps = 20 # Frames taken till move to next tile
-    @_lookSteps = 15 # Frames taken till facing correct direction
     @currentSteps = 0 # Number of steps till completion of move action
     @freeze = false # Can the player activate controls?
 
@@ -52,11 +53,11 @@ class Controls
 
       when 38, 87 # up, W
         @playerState.moveForward()
-        @currentSteps = @_walkSteps
+        @currentSteps = _walkSteps
 
       when 37, 65 # left, A
         @playerState.lookLeft()
-        @currentSteps = @_lookSteps
+        @currentSteps = _lookSteps
 
       when 40, 83 # down, S
         @playerState.lookLeft()
@@ -64,23 +65,23 @@ class Controls
         @playerState.moveForward()
         @playerState.lookRight()
         @playerState.lookRight()
-        @currentSteps = @_walkSteps
+        @currentSteps = _walkSteps
 
       when 39, 68 # right, D
         @playerState.lookRight()
-        @currentSteps = @_lookSteps
+        @currentSteps = _lookSteps
 
       when 81 # Q
         @playerState.lookLeft()
         @playerState.moveForward()
         @playerState.lookRight()
-        @currentSteps = @_walkSteps
+        @currentSteps = _walkSteps
 
       when 69 # E
         @playerState.lookRight()
         @playerState.moveForward()
         @playerState.lookLeft()
-        @currentSteps = @_walkSteps
+        @currentSteps = _walkSteps
 
   update: ->
 

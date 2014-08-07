@@ -62,13 +62,19 @@ class Map
 
   displayTiles: (scene) ->
     #TODO get rid of superfluous geometry, and inherit mesh properties?
-    tileMap = new THREE.CubeGeometry(1,1,1)
+    #TODO http://threejs.org/docs/#Reference/Core/Face3
+    tileMap = new THREE.BoxGeometry(1,1,1)
+    materials = []
+    debugger
     _.forOwn @tiles, (tile, key) ->
       if tile.object
         tile.object.updateMatrix()
         tileMap.merge tile.object.geometry, tile.object.matrix
+        materials.push tile.object.material
 
-    tileMapMesh = new THREE.Mesh tileMap, new THREE.MeshNormalMaterial()
+    material = new THREE.MeshFaceMaterial materials
+    tileMapMesh = new THREE.Mesh tileMap, material
+    tileMapMesh.receiveShadow = tileMapMesh.castShadow = true
     scene.add tileMapMesh
 
 class Tile

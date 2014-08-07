@@ -5,10 +5,10 @@
 ###
 
 class Player
-  _playerHeight: 3
+  _playerHeight = 3
 
   # Turn object for easy reference
-  turn:
+  turn =
     north:
       left: "west"
       right: "east"
@@ -40,19 +40,19 @@ class Player
   # Define facing target and eyelevel for camera position
   computeCamera: ->
     @facingTarget = @facingTile.position.clone()
-    @facingTarget.y += @_playerHeight
+    @facingTarget.y += _playerHeight
     @cameraPosition = @position.clone()
-    @cameraPosition.y += @_playerHeight
+    @cameraPosition.y += _playerHeight
     return
 
   lookRight: ->
-    @facing = @turn[@facing]["right"]
+    @facing = turn[@facing]["right"]
     @facingTile = @tile.adjacent[@facing]
     @computeCamera()
     return
 
   lookLeft: ->
-    @facing = @turn[@facing]["left"]
+    @facing = turn[@facing]["left"]
     @facingTile = @tile.adjacent[@facing]
     @computeCamera()
     return
