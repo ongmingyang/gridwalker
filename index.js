@@ -1,2 +1,2 @@
-init(example()); // loads example map
+init(window.globalMaps.example); // loads example map
 render();
