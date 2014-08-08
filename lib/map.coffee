@@ -105,7 +105,6 @@ class Map
   ###
   makeAnimation: (args) ->
     tiles = @tiles
-    axis = args.axis or 'y' # movement axis (TODO: make multiple movement axes?)
     hooks = args.hooks or null # link and unlink hooks
 
     # Update the animating flag in tiles object for display
@@ -115,11 +114,13 @@ class Map
       description: args.description or null
       animate: (t) ->
         # Move reference point in @tiles
-        tiles[args.vertex].position[axis] = args.position t
+        args.animate tiles[args.vertex].position, t
 
         # Move object geometry
-        tiles[args.vertex].object.position[axis] = args.position t
+        args.animate tiles[args.vertex].object.position, t
         tiles[args.vertex].object.verticesNeedUpdate = true
+
+    return
 
 class Tile
   constructor: (init) ->

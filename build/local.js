@@ -343,16 +343,15 @@ Map = (function() {
    */
 
   Map.prototype.makeAnimation = function(args) {
-    var axis, hooks, tiles;
+    var hooks, tiles;
     tiles = this.tiles;
-    axis = args.axis || 'y';
     hooks = args.hooks || null;
     tiles[args.vertex].animating = true;
-    return this.animations.push({
+    this.animations.push({
       description: args.description || null,
       animate: function(t) {
-        tiles[args.vertex].position[axis] = args.position(t);
-        tiles[args.vertex].object.position[axis] = args.position(t);
+        args.animate(tiles[args.vertex].position, t);
+        args.animate(tiles[args.vertex].object.position, t);
         return tiles[args.vertex].object.verticesNeedUpdate = true;
       }
     });

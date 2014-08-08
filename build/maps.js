@@ -52,9 +52,8 @@
   map.makeAnimation({
     description: "Tile moves up and down",
     vertex: 11,
-    axis: 'y',
-    position: function(t) {
-      return 2 + Math.sin(t % 62.83);
+    animate: function(vertex, t) {
+      return vertex.y = 2 + Math.sin(t % 62.83);
     }
   });
 
