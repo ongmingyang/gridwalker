@@ -11,6 +11,11 @@ window.player = void 0;
 window.controls = void 0;
 
 
+/* VISUAL */
+
+window.animator = void 0;
+
+
 /* MAP */
 
 window.globalMeshes = {};
@@ -19,9 +24,36 @@ window.globalMaps = {};
 
 
 /*
+  This class handles all global animations.
+ */
+var Animator;
+
+Animator = (function() {
+  function Animator(map) {
+    this.animations = map.animations;
+    this.clock = new THREE.Clock(true);
+  }
+
+  Animator.prototype.update = function() {
+    var animation, _i, _len, _ref, _results;
+    _ref = this.animations;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      animation = _ref[_i];
+      _results.push(animation.animate(this.clock.getElapsedTime()));
+    }
+    return _results;
+  };
+
+  return Animator;
+
+})();
+
+
+/*
   The goal of the Controls object is to make the
-  camera (object) follow the playerState (player)'s position
-  in a smooth fashion, and invoke playerState actions upon
+  camera (object) follow the player's position in
+  a smooth fashion, and invoke player actions upon
   triggering key events
  */
 var Controls;
@@ -33,12 +65,12 @@ Controls = (function() {
 
   _lookSteps = 15;
 
-  function Controls(object, domElement, playerState) {
+  function Controls(object, domElement, player) {
     this.object = object;
     this.domElement = domElement;
-    this.playerState = playerState;
-    this.oldTarget = this.playerState.facingTarget.clone();
-    this.oldPosition = this.playerState.cameraPosition.clone();
+    this.player = player;
+    this.oldTarget = this.player.facingTarget();
+    this.oldPosition = this.player.cameraPosition();
     this.mouseX = this.mouseY = 0;
     this.object.position.copy(this.oldPosition);
     this.object.lookAt(this.oldTarget);
@@ -66,33 +98,33 @@ Controls = (function() {
     switch (event.keyCode) {
       case 38:
       case 87:
-        this.playerState.moveForward();
+        this.player.moveForward();
         return this.currentSteps = _walkSteps;
       case 37:
       case 65:
-        this.playerState.lookLeft();
+        this.player.lookLeft();
         return this.currentSteps = _lookSteps;
       case 40:
       case 83:
-        this.playerState.lookLeft();
-        this.playerState.lookLeft();
-        this.playerState.moveForward();
-        this.playerState.lookRight();
-        this.playerState.lookRight();
+        this.player.lookLeft();
+        this.player.lookLeft();
+        this.player.moveForward();
+        this.player.lookRight();
+        this.player.lookRight();
         return this.currentSteps = _walkSteps;
       case 39:
       case 68:
-        this.playerState.lookRight();
+        this.player.lookRight();
         return this.currentSteps = _lookSteps;
       case 81:
-        this.playerState.lookLeft();
-        this.playerState.moveForward();
-        this.playerState.lookRight();
+        this.player.lookLeft();
+        this.player.moveForward();
+        this.player.lookRight();
         return this.currentSteps = _walkSteps;
       case 69:
-        this.playerState.lookRight();
-        this.playerState.moveForward();
-        this.playerState.lookLeft();
+        this.player.lookRight();
+        this.player.moveForward();
+        this.player.lookLeft();
         return this.currentSteps = _walkSteps;
       case 16:
         return this.dragging = true;
@@ -127,14 +159,16 @@ Controls = (function() {
       this.oldTarget.applyAxisAngle(u.normalize(), this.mouseY);
     }
     if (this.currentSteps <= 0) {
+      this.oldPosition.copy(this.player.cameraPosition());
+      this.object.position.copy(this.oldPosition);
       this.freeze = false;
     } else {
       this.currentSteps--;
       delta = new THREE.Vector3();
-      delta.subVectors(this.playerState.facingTarget, this.oldTarget);
+      delta.subVectors(this.player.facingTarget(), this.oldTarget);
       delta.divideScalar(this.currentSteps);
       v = new THREE.Vector3();
-      v.subVectors(this.playerState.cameraPosition, this.oldPosition);
+      v.subVectors(this.player.cameraPosition(), this.oldPosition);
       v.divideScalar(this.currentSteps);
       this.oldPosition.add(v);
       this.object.position.copy(this.oldPosition);
@@ -169,6 +203,7 @@ init = function(map) {
   window.renderer.shadowMapType = THREE.PCFSoftShadowMap;
   document.body.appendChild(renderer.domElement);
   window.player = new Player(map);
+  window.animator = new Animator(map);
   window.controls = new Controls(window.camera, window.renderer, window.player);
   window.addEventListener("resize", onWindowResize, false);
 };
@@ -182,6 +217,7 @@ onWindowResize = function() {
 render = function() {
   requestAnimationFrame(render);
   window.renderer.render(window.scene, window.camera);
+  window.animator.update();
   window.controls.update();
 };
 
@@ -193,10 +229,12 @@ Map = (function() {
       return new Tile({
         position: vector,
         walkable: true,
+        animating: false,
         object: defaultTile || window.globalMeshes.tile0.init(vector)
       });
     });
     this.walls = {};
+    this.animations = [];
     this.startTile = this.tiles[0];
   }
 
@@ -263,28 +301,61 @@ Map = (function() {
     });
   };
 
+
+  /*
+    Merges all non-animating tile geometries and places them onto the scene
+    ONLY MERGE NON-ANIMATING TILE GEOMETRIES KK THX
+    Geometries are merged for performance purposes!
+   */
+
   Map.prototype.displayTiles = function(scene) {
     var material, tileMap, tileMapMesh;
     tileMap = null;
     material = new THREE.MeshFaceMaterial(_.flatten(_.pluck(window.globalMeshes, "materials")));
     _.forOwn(this.tiles, function(tile, key) {
       if (tile.object) {
-        _.forEach(tile.object.geometry.faces, function(face) {
-          return face.materialIndex = _.findIndex(material.materials, {
-            id: face.materialIndex
-          });
-        });
-        if (tileMap == null) {
-          return tileMap = tile.object.geometry;
+        if (tile.animating) {
+          return scene.add(tile.object);
         } else {
-          tile.object.updateMatrix();
-          return tileMap.merge(tile.object.geometry, tile.object.matrix);
+          _.forEach(tile.object.geometry.faces, function(face) {
+            return face.materialIndex = _.findIndex(material.materials, {
+              id: face.materialIndex
+            });
+          });
+          if (tileMap == null) {
+            return tileMap = tile.object.geometry;
+          } else {
+            tile.object.updateMatrix();
+            return tileMap.merge(tile.object.geometry, tile.object.matrix);
+          }
         }
       }
     });
     tileMapMesh = new THREE.Mesh(tileMap, material);
     tileMapMesh.receiveShadow = tileMapMesh.castShadow = true;
     return scene.add(tileMapMesh);
+  };
+
+
+  /*
+    Helper function that passes animations into an instance array
+    that will later be iterated through by the animator object
+   */
+
+  Map.prototype.makeAnimation = function(args) {
+    var axis, hooks, tiles;
+    tiles = this.tiles;
+    axis = args.axis || 'y';
+    hooks = args.hooks || null;
+    tiles[args.vertex].animating = true;
+    return this.animations.push({
+      description: args.description || null,
+      animate: function(t) {
+        tiles[args.vertex].position[axis] = args.position(t);
+        tiles[args.vertex].object.position[axis] = args.position(t);
+        return tiles[args.vertex].object.verticesNeedUpdate = true;
+      }
+    });
   };
 
   return Map;
@@ -354,26 +425,30 @@ Player = (function() {
     this.position = this.tile.position;
     this.facing = "north";
     this.facingTile = this.tile.adjacent[this.facing];
-    this.computeCamera();
   }
 
-  Player.prototype.computeCamera = function() {
-    this.facingTarget = this.facingTile.position.clone();
-    this.facingTarget.y += _playerHeight;
-    this.cameraPosition = this.position.clone();
-    this.cameraPosition.y += _playerHeight;
+  Player.prototype.facingTarget = function() {
+    var v;
+    v = this.facingTile.position.clone();
+    v.y += _playerHeight;
+    return v;
+  };
+
+  Player.prototype.cameraPosition = function() {
+    var v;
+    v = this.position.clone();
+    v.y += _playerHeight;
+    return v;
   };
 
   Player.prototype.lookRight = function() {
     this.facing = turn[this.facing]["right"];
     this.facingTile = this.tile.adjacent[this.facing];
-    this.computeCamera();
   };
 
   Player.prototype.lookLeft = function() {
     this.facing = turn[this.facing]["left"];
     this.facingTile = this.tile.adjacent[this.facing];
-    this.computeCamera();
   };
 
   Player.prototype.moveForward = function() {
@@ -381,7 +456,6 @@ Player = (function() {
       this.tile = this.facingTile;
       this.position = this.tile.position;
       this.facingTile = this.facingTile.adjacent[this.facing];
-      this.computeCamera();
     }
   };
 
@@ -474,7 +548,7 @@ window.globalMeshes.tile0 = {
     _.forEach(geometry.faces, function(face) {
       return face.materialIndex = 1;
     });
-    cube = new THREE.Mesh(geometry);
+    cube = new THREE.Mesh(geometry, this.materials[0]);
     cube.position.copy(position);
     return cube;
   }
@@ -496,7 +570,7 @@ window.globalMeshes.tile1 = {
     _.forEach(geometry.faces, function(face) {
       return face.materialIndex = 2;
     });
-    cube = new THREE.Mesh(geometry);
+    cube = new THREE.Mesh(geometry, this.materials[0]);
     cube.position.copy(position);
     return cube;
   }

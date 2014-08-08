@@ -23,6 +23,7 @@ init = (map) ->
   
   # Browser controls
   window.player = new Player map
+  window.animator = new Animator map
   window.controls = new Controls window.camera, window.renderer, window.player
   window.addEventListener "resize", onWindowResize, false
   return
@@ -36,5 +37,6 @@ onWindowResize = ->
 render = ->
   requestAnimationFrame render
   window.renderer.render window.scene, window.camera
+  window.animator.update()
   window.controls.update()
   return

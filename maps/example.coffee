@@ -32,6 +32,14 @@ map.link 9, 10, "north"
 map.link 10, 11, "north"
 map.link 11, 7, "west"
 
+map.makeAnimation
+  description: "Tile moves up and down"
+  vertex: 11
+  axis: 'y'
+  position: (t) ->
+    2 + Math.sin(t % 62.83)
+
+# Creates walls around each unlinked tile
 map.computeBoundary()
 
 # Bind map to global object

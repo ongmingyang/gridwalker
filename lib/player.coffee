@@ -35,26 +35,27 @@ class Player
     @position = @tile.position
     @facing = "north" # begin facing north
     @facingTile = @tile.adjacent[@facing]
-    @computeCamera()
   
-  # Define facing target and eyelevel for camera position
-  computeCamera: ->
-    @facingTarget = @facingTile.position.clone()
-    @facingTarget.y += _playerHeight
-    @cameraPosition = @position.clone()
-    @cameraPosition.y += _playerHeight
-    return
+  # Function computes facing target of camera
+  facingTarget: ->
+    v = @facingTile.position.clone()
+    v.y += _playerHeight
+    v
+
+  # Function computes camera position
+  cameraPosition: ->
+    v = @position.clone()
+    v.y += _playerHeight
+    v
 
   lookRight: ->
     @facing = turn[@facing]["right"]
     @facingTile = @tile.adjacent[@facing]
-    @computeCamera()
     return
 
   lookLeft: ->
     @facing = turn[@facing]["left"]
     @facingTile = @tile.adjacent[@facing]
-    @computeCamera()
     return
 
   moveForward: ->
@@ -62,6 +63,5 @@ class Player
       @tile = @facingTile
       @position = @tile.position
       @facingTile = @facingTile.adjacent[@facing]
-      @computeCamera()
     return
 

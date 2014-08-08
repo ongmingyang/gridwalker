@@ -49,6 +49,15 @@
 
   map.link(11, 7, "west");
 
+  map.makeAnimation({
+    description: "Tile moves up and down",
+    vertex: 11,
+    axis: 'y',
+    position: function(t) {
+      return 2 + Math.sin(t % 62.83);
+    }
+  });
+
   map.computeBoundary();
 
   window.globalMaps.example = map;

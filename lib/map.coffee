@@ -5,10 +5,11 @@ class Map
       new Tile
         position: vector
         walkable: true
+        animating: false
         object: defaultTile or window.globalMeshes.tile0.init vector
     
-    # The walls object will be populated later with this.computeBoundary
-    @walls = {}
+    @walls = {} # Will be populated later with @computeBoundary
+    @animations = []
     @startTile = @tiles[0]
     
   # Links vertices
@@ -64,6 +65,11 @@ class Map
         return
       return
 
+  ###
+    Merges all non-animating tile geometries and places them onto the scene
+    ONLY MERGE NON-ANIMATING TILE GEOMETRIES KK THX
+    Geometries are merged for performance purposes!
+  ###
   displayTiles: (scene) ->
     tileMap = null
     material = new THREE.MeshFaceMaterial _.flatten _.pluck window.globalMeshes, "materials"
@@ -71,22 +77,49 @@ class Map
     _.forOwn @tiles, (tile, key) ->
       if tile.object
 
-        # Assign correct material index based on collapsed array and material id
-        _.forEach tile.object.geometry.faces, (face) ->
-          face.materialIndex = _.findIndex material.materials,
-            id: face.materialIndex
+        # Add animating tile as individual geometry for performance
+        if tile.animating
+          scene.add tile.object
 
-        # Create tileMap merged geometry object
-        unless tileMap?
-          # note first geometry must be centered at origin!
-          tileMap = tile.object.geometry
         else
-          tile.object.updateMatrix()
-          tileMap.merge tile.object.geometry, tile.object.matrix
+          # Assign correct material index based on collapsed array and material id
+          _.forEach tile.object.geometry.faces, (face) ->
+            face.materialIndex = _.findIndex material.materials,
+              id: face.materialIndex
+
+          # Create tileMap merged geometry object
+          unless tileMap?
+            # note first geometry must be centered at origin!
+            tileMap = tile.object.geometry
+          else
+            tile.object.updateMatrix()
+            tileMap.merge tile.object.geometry, tile.object.matrix
 
     tileMapMesh = new THREE.Mesh tileMap, material
     tileMapMesh.receiveShadow = tileMapMesh.castShadow = true
     scene.add tileMapMesh
+
+  ###
+    Helper function that passes animations into an instance array
+    that will later be iterated through by the animator object
+  ###
+  makeAnimation: (args) ->
+    tiles = @tiles
+    axis = args.axis or 'y' # movement axis (TODO: make multiple movement axes?)
+    hooks = args.hooks or null # link and unlink hooks
+
+    # Update the animating flag in tiles object for display
+    tiles[args.vertex].animating = true
+
+    @animations.push
+      description: args.description or null
+      animate: (t) ->
+        # Move reference point in @tiles
+        tiles[args.vertex].position[axis] = args.position t
+
+        # Move object geometry
+        tiles[args.vertex].object.position[axis] = args.position t
+        tiles[args.vertex].object.verticesNeedUpdate = true
 
 class Tile
   constructor: (init) ->

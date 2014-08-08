@@ -14,6 +14,6 @@ window.globalMeshes.tile0 =
     _.forEach geometry.faces, (face) ->
       face.materialIndex = 1
 
-    cube = new THREE.Mesh( geometry )
+    cube = new THREE.Mesh( geometry, @materials[0] )
     cube.position.copy position
     cube

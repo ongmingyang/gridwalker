@@ -1,7 +1,7 @@
 ###
   The goal of the Controls object is to make the
-  camera (object) follow the playerState (player)'s position
-  in a smooth fashion, and invoke playerState actions upon
+  camera (object) follow the player's position in
+  a smooth fashion, and invoke player actions upon
   triggering key events
 ###
 
@@ -9,15 +9,15 @@ class Controls
   _walkSteps = 20 # Frames taken till move to next tile
   _lookSteps = 15 # Frames taken till facing correct direction
 
-  constructor: (object, domElement, playerState) ->
+  constructor: (object, domElement, player) ->
     # The camera, the dom element, and the player state
     @object = object
     @domElement = domElement
-    @playerState = playerState
+    @player = player
 
     # The tile the user will walk to if moving forward
-    @oldTarget = @playerState.facingTarget.clone()
-    @oldPosition = @playerState.cameraPosition.clone()
+    @oldTarget = @player.facingTarget()
+    @oldPosition = @player.cameraPosition()
 
     # Mouse dragging is set to 0
     @mouseX = @mouseY = 0
@@ -54,35 +54,35 @@ class Controls
 
     switch event.keyCode
       when 38, 87 # up, W
-        @playerState.moveForward()
+        @player.moveForward()
         @currentSteps = _walkSteps
 
       when 37, 65 # left, A
-        @playerState.lookLeft()
+        @player.lookLeft()
         @currentSteps = _lookSteps
 
       when 40, 83 # down, S
-        @playerState.lookLeft()
-        @playerState.lookLeft()
-        @playerState.moveForward()
-        @playerState.lookRight()
-        @playerState.lookRight()
+        @player.lookLeft()
+        @player.lookLeft()
+        @player.moveForward()
+        @player.lookRight()
+        @player.lookRight()
         @currentSteps = _walkSteps
 
       when 39, 68 # right, D
-        @playerState.lookRight()
+        @player.lookRight()
         @currentSteps = _lookSteps
 
       when 81 # Q
-        @playerState.lookLeft()
-        @playerState.moveForward()
-        @playerState.lookRight()
+        @player.lookLeft()
+        @player.moveForward()
+        @player.lookRight()
         @currentSteps = _walkSteps
 
       when 69 # E
-        @playerState.lookRight()
-        @playerState.moveForward()
-        @playerState.lookLeft()
+        @player.lookRight()
+        @player.moveForward()
+        @player.lookLeft()
         @currentSteps = _walkSteps
 
       when 16 # SHIFT
@@ -118,6 +118,10 @@ class Controls
       @oldTarget.applyAxisAngle u.normalize(), @mouseY
 
     if @currentSteps <= 0
+      # For animating tiles TODO: make efficient?
+      @oldPosition.copy @player.cameraPosition()
+      @object.position.copy @oldPosition
+
       @freeze = false # Reset flags
     else
       @currentSteps--
@@ -125,13 +129,13 @@ class Controls
       # Look left and right
       # This block updates the target
       delta = new THREE.Vector3()
-      delta.subVectors @playerState.facingTarget, @oldTarget
+      delta.subVectors @player.facingTarget(), @oldTarget
       delta.divideScalar @currentSteps
 
       # Forward and backward movement
       # This block updates the camera position
       v = new THREE.Vector3()
-      v.subVectors @playerState.cameraPosition, @oldPosition
+      v.subVectors @player.cameraPosition(), @oldPosition
       v.divideScalar @currentSteps
 
       @oldPosition.add v
