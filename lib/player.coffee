@@ -62,6 +62,13 @@ class Player
     if @facingTile.walkable
       @tile = @facingTile
       @position = @tile.position
-      @facingTile = @facingTile.adjacent[@facing]
+      @facingTile = @tile.adjacent[@facing]
+    return
+
+  teleport: (index) ->
+    if map.tiles[index].walkable
+      @tile = map.tiles[index]
+      @position = @tile.position
+      @facingTile = @tile.adjacent[@facing]
     return
 

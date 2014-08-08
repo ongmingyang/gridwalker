@@ -25,7 +25,10 @@ init = (map) ->
   window.player = new Player map
   window.animator = new Animator map
   window.controls = new Controls window.camera, window.renderer, window.player
-  window.addEventListener "resize", onWindowResize, false
+  window.addEventListener 'resize', onWindowResize, false
+
+  # Interact with objects
+  window.interactor = new Interactor window.player
   return
 
 onWindowResize = ->

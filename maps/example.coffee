@@ -14,10 +14,13 @@ vertices =
   9: new THREE.Vector3(10, 2, 20)
   10: new THREE.Vector3(20, 3, 20)
   11: new THREE.Vector3(30, 2, 20)
+  12: new THREE.Vector3(30, 2, 30)
 
 map = new Map vertices
 
 map.setTile 6, window.globalMeshes.tile1
+map.setTile 12, window.globalMeshes.cube0
+map.makeInteractive 12
 
 map.link 0, 1, "north"
 map.link 0, 3, "south"
@@ -31,6 +34,7 @@ map.link 8, 9, "north"
 map.link 9, 10, "north"
 map.link 10, 11, "north"
 map.link 11, 7, "west"
+map.link 11, 12, "east"
 
 map.makeAnimation
   description: "Tile moves up and down"

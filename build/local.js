@@ -10,6 +10,8 @@ window.player = void 0;
 
 window.controls = void 0;
 
+window.interactor = void 0;
+
 
 /* VISUAL */
 
@@ -184,6 +186,47 @@ Controls = (function() {
 
 })();
 
+
+/*
+  The Interactor class takes care of all interactions with
+  surrounding objects
+ */
+var Interactor;
+
+Interactor = (function() {
+  var bind;
+
+  function Interactor(player) {
+    this.player = player;
+    this.projector = new THREE.Projector();
+    this.raycaster = new THREE.Raycaster(window.camera.position, this.player.facingTile.position.clone());
+    this.vector = new THREE.Vector3();
+    $(window).mousedown(bind(this, this.onMouseDown));
+  }
+
+  bind = function(scope, fn) {
+    return function() {
+      fn.apply(scope, arguments);
+    };
+  };
+
+  Interactor.prototype.onMouseDown = function(event) {
+    var intersects;
+    event.preventDefault();
+    this.vector = this.vector.set((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
+    this.projector.unprojectVector(this.vector, window.camera);
+    this.objects = _.compact(_.pluck(_.filter(_.values(this.player.tile.adjacent), 'interactive'), 'object'));
+    console.log(this.objects);
+    this.vector.sub(window.camera.position).normalize();
+    this.raycaster.set(window.camera.position, this.vector);
+    intersects = this.raycaster.intersectObjects(this.objects);
+    return console.log(intersects);
+  };
+
+  return Interactor;
+
+})();
+
 var init, onWindowResize, render;
 
 init = function(map) {
@@ -205,7 +248,8 @@ init = function(map) {
   window.player = new Player(map);
   window.animator = new Animator(map);
   window.controls = new Controls(window.camera, window.renderer, window.player);
-  window.addEventListener("resize", onWindowResize, false);
+  window.addEventListener('resize', onWindowResize, false);
+  window.interactor = new Interactor(window.player);
 };
 
 onWindowResize = function() {
@@ -230,6 +274,7 @@ Map = (function() {
         position: vector,
         walkable: true,
         animating: false,
+        interactive: false,
         object: defaultTile || window.globalMeshes.tile0.init(vector)
       });
     });
@@ -287,6 +332,9 @@ Map = (function() {
       west: new THREE.Vector3(0, 0, -10)
     };
     return _.forOwn(this.tiles, function(tile, key) {
+      if (!tile.walkable) {
+        return;
+      }
       _.forOwn(tile.adjacent, function(obj, direction) {
         if (_.isNull(obj)) {
           walls[i] = new Tile({
@@ -314,7 +362,7 @@ Map = (function() {
     material = new THREE.MeshFaceMaterial(_.flatten(_.pluck(window.globalMeshes, "materials")));
     _.forOwn(this.tiles, function(tile, key) {
       if (tile.object) {
-        if (tile.animating) {
+        if (tile.animating || tile.interactive) {
           return scene.add(tile.object);
         } else {
           _.forEach(tile.object.geometry.faces, function(face) {
@@ -355,6 +403,16 @@ Map = (function() {
         return tiles[args.vertex].object.verticesNeedUpdate = true;
       }
     });
+  };
+
+
+  /*
+    Helper function for interactives
+   */
+
+  Map.prototype.makeInteractive = function(index, walkable) {
+    this.tiles[index].interactive = true;
+    this.tiles[index].walkable = true || false;
   };
 
   return Map;
@@ -454,7 +512,15 @@ Player = (function() {
     if (this.facingTile.walkable) {
       this.tile = this.facingTile;
       this.position = this.tile.position;
-      this.facingTile = this.facingTile.adjacent[this.facing];
+      this.facingTile = this.tile.adjacent[this.facing];
+    }
+  };
+
+  Player.prototype.teleport = function(index) {
+    if (map.tiles[index].walkable) {
+      this.tile = map.tiles[index];
+      this.position = this.tile.position;
+      this.facingTile = this.tile.adjacent[this.facing];
     }
   };
 
@@ -528,6 +594,28 @@ addTerrain = function(scene) {
   });
   skyBox = new THREE.Mesh(geometry, material);
   return scene.add(skyBox);
+};
+
+window.globalMeshes.cube0 = {
+  materials: [
+    new THREE.MeshPhongMaterial({
+      id: 3,
+      color: 0xcceeff
+    })
+  ],
+  init: function(position) {
+    var cube, geometry;
+    geometry = new THREE.BoxGeometry(2, 2, 2);
+    _.forEach(geometry.vertices, function(vertex) {
+      return vertex.y += 3;
+    });
+    _.forEach(geometry.faces, function(face) {
+      return face.materialIndex = 3;
+    });
+    cube = new THREE.Mesh(geometry, this.materials[0]);
+    cube.position.copy(position);
+    return cube;
+  }
 };
 
 window.globalMeshes.tile0 = {

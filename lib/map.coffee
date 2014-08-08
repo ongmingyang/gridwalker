@@ -6,6 +6,7 @@ class Map
         position: vector
         walkable: true
         animating: false
+        interactive: false
         object: defaultTile or window.globalMeshes.tile0.init vector
     
     @walls = {} # Will be populated later with @computeBoundary
@@ -53,6 +54,10 @@ class Map
       west: new THREE.Vector3(0, 0, -10)
 
     _.forOwn @tiles, (tile, key) ->
+
+      # Only compute walls for walkable tiles
+      return unless tile.walkable
+
       _.forOwn tile.adjacent, (obj, direction) ->
         if _.isNull(obj)
           walls[i] = new Tile
@@ -77,8 +82,8 @@ class Map
     _.forOwn @tiles, (tile, key) ->
       if tile.object
 
-        # Add animating tile as individual geometry for performance
-        if tile.animating
+        # Add animating or interactive tile as individual geometry for performance
+        if tile.animating or tile.interactive
           scene.add tile.object
 
         else
@@ -119,7 +124,16 @@ class Map
         # Move object geometry
         args.animate tiles[args.vertex].object.position, t
         tiles[args.vertex].object.verticesNeedUpdate = true
+    return
 
+  ###
+    Helper function for interactives
+  ###
+  makeInteractive: (index, walkable) ->
+    @tiles[index].interactive = true
+
+    # By default, make interactive objects not walkable
+    @tiles[index].walkable = true or false
     return
 
 class Tile
