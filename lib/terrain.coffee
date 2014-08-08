@@ -11,12 +11,14 @@ addTerrain = (scene) ->
   light.castShadow = true
   
   #light.shadowCameraVisible = true;
-  d = 200
+  d = 100
   light.shadowCameraLeft = -d
   light.shadowCameraRight = d
   light.shadowCameraTop = d
   light.shadowCameraBottom = -d
   light.shadowCameraFar = 500
+  light.shadowMapWidth = 2048
+  light.shadowMapHeight = 2048
   scene.add light
   scene.add new THREE.AmbientLight(0x404040)
   

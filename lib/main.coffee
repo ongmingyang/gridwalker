@@ -1,45 +1,40 @@
-camera = undefined
-scene = undefined
-renderer = undefined
-player = undefined
-controls = undefined
-
 init = (map) ->
   SCREEN_WIDTH = window.innerWidth
   SCREEN_HEIGHT = window.innerHeight
   
   # Camera
-  camera = new THREE.PerspectiveCamera(45, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 10000)
+  window.camera = new THREE.PerspectiveCamera(45, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 10000)
   
   # Scene
-  scene = new THREE.Scene()
+  window.scene = new THREE.Scene()
   
   # Add terrain and map features
-  addTerrain scene
-  map.displayTiles scene
+  addTerrain window.scene
+  map.displayTiles window.scene
   
   # Renderer
-  renderer = new THREE.WebGLRenderer
+  window.renderer = new THREE.WebGLRenderer
     antialias: true
-  renderer.setClearColor 0x000000
-  renderer.setSize SCREEN_WIDTH, SCREEN_HEIGHT
-  renderer.shadowMapEnabled = true
+  window.renderer.setClearColor 0x000000
+  window.renderer.setSize SCREEN_WIDTH, SCREEN_HEIGHT
+  window.renderer.shadowMapEnabled = true
+  window.renderer.shadowMapType = THREE.PCFSoftShadowMap
   document.body.appendChild renderer.domElement
   
   # Browser controls
-  player = new Player map
-  controls = new Controls camera, renderer, player
+  window.player = new Player map
+  window.controls = new Controls window.camera, window.renderer, window.player
   window.addEventListener "resize", onWindowResize, false
   return
 
 onWindowResize = ->
-  camera.aspect = window.innerWidth / window.innerHeight
-  camera.updateProjectionMatrix()
-  renderer.setSize window.innerWidth, window.innerHeight
+  window.camera.aspect = window.innerWidth / window.innerHeight
+  window.camera.updateProjectionMatrix()
+  window.renderer.setSize window.innerWidth, window.innerHeight
   return
 
 render = ->
   requestAnimationFrame render
-  renderer.render scene, camera
-  controls.update()
+  window.renderer.render window.scene, window.camera
+  window.controls.update()
   return

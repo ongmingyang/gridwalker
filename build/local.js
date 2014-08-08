@@ -1,5 +1,18 @@
 
+/* CORE */
+window.camera = void 0;
+
+window.scene = void 0;
+
+window.renderer = void 0;
+
+window.player = void 0;
+
+window.controls = void 0;
+
+
 /* MAP */
+
 window.globalMeshes = {};
 
 window.globalMaps = {};
@@ -26,11 +39,15 @@ Controls = (function() {
     this.playerState = playerState;
     this.oldTarget = this.playerState.facingTarget.clone();
     this.oldPosition = this.playerState.cameraPosition.clone();
+    this.mouseX = this.mouseY = 0;
     this.object.position.copy(this.oldPosition);
     this.object.lookAt(this.oldTarget);
     this.currentSteps = 0;
     this.freeze = false;
+    this.dragging = false;
     $(window).keydown(bind(this, this.onKeyDown));
+    $(window).keyup(bind(this, this.onKeyUp));
+    $(window).mousemove(bind(this, this.onMouseMove));
   }
 
   bind = function(scope, fn) {
@@ -45,8 +62,7 @@ Controls = (function() {
       return;
     }
     this.freeze = true;
-    this.oldTarget = this.playerState.facingTarget.clone();
-    this.oldPosition = this.playerState.cameraPosition.clone();
+    this.dragging = false;
     switch (event.keyCode) {
       case 38:
       case 87:
@@ -78,29 +94,55 @@ Controls = (function() {
         this.playerState.moveForward();
         this.playerState.lookLeft();
         return this.currentSteps = _walkSteps;
+      case 16:
+        return this.dragging = true;
     }
   };
 
+  Controls.prototype.onKeyUp = function(event) {
+    event.preventDefault();
+    switch (event.keyCode) {
+      case 16:
+        return this.dragging = false;
+    }
+  };
+
+  Controls.prototype.onMouseMove = function(event) {
+    if (!this.dragging) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    this.mouseX = (window.innerWidth / 2 - event.pageX) / window.innerWidth / 10;
+    return this.mouseY = (window.innerHeight / 2 - event.pageY) / window.innerHeight / 10;
+  };
+
   Controls.prototype.update = function() {
-    var delta, v;
+    var delta, u, v;
+    if (this.dragging) {
+      u = new THREE.Vector3();
+      u.subVectors(this.oldTarget, this.oldPosition);
+      u.applyAxisAngle(this.object.up, -Math.PI / 2);
+      this.oldTarget.applyAxisAngle(this.object.up, this.mouseX);
+      this.oldTarget.applyAxisAngle(u.normalize(), this.mouseY);
+    }
     if (this.currentSteps <= 0) {
       this.freeze = false;
-      return;
     } else {
       this.currentSteps--;
+      delta = new THREE.Vector3();
+      delta.subVectors(this.playerState.facingTarget, this.oldTarget);
+      delta.divideScalar(this.currentSteps);
+      v = new THREE.Vector3();
+      v.subVectors(this.playerState.cameraPosition, this.oldPosition);
+      v.divideScalar(this.currentSteps);
+      this.oldPosition.add(v);
+      this.object.position.copy(this.oldPosition);
+      if (delta.length() <= 0.01) {
+        this.currentSteps = 0;
+      }
+      this.oldTarget.add(delta);
     }
-    delta = new THREE.Vector3();
-    delta.subVectors(this.playerState.facingTarget, this.oldTarget);
-    delta.divideScalar(this.currentSteps);
-    v = new THREE.Vector3();
-    v.subVectors(this.playerState.cameraPosition, this.oldPosition);
-    v.divideScalar(this.currentSteps);
-    this.oldPosition.add(v);
-    this.object.position.copy(this.oldPosition);
-    if (delta.length() <= 0.01) {
-      this.currentSteps = 0;
-    }
-    this.oldTarget.add(delta);
     this.object.lookAt(this.oldTarget);
   };
 
@@ -108,48 +150,39 @@ Controls = (function() {
 
 })();
 
-var camera, controls, init, onWindowResize, player, render, renderer, scene;
-
-camera = void 0;
-
-scene = void 0;
-
-renderer = void 0;
-
-player = void 0;
-
-controls = void 0;
+var init, onWindowResize, render;
 
 init = function(map) {
   var SCREEN_HEIGHT, SCREEN_WIDTH;
   SCREEN_WIDTH = window.innerWidth;
   SCREEN_HEIGHT = window.innerHeight;
-  camera = new THREE.PerspectiveCamera(45, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 10000);
-  scene = new THREE.Scene();
-  addTerrain(scene);
-  map.displayTiles(scene);
-  renderer = new THREE.WebGLRenderer({
+  window.camera = new THREE.PerspectiveCamera(45, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 10000);
+  window.scene = new THREE.Scene();
+  addTerrain(window.scene);
+  map.displayTiles(window.scene);
+  window.renderer = new THREE.WebGLRenderer({
     antialias: true
   });
-  renderer.setClearColor(0x000000);
-  renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-  renderer.shadowMapEnabled = true;
+  window.renderer.setClearColor(0x000000);
+  window.renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+  window.renderer.shadowMapEnabled = true;
+  window.renderer.shadowMapType = THREE.PCFSoftShadowMap;
   document.body.appendChild(renderer.domElement);
-  player = new Player(map);
-  controls = new Controls(camera, renderer, player);
+  window.player = new Player(map);
+  window.controls = new Controls(window.camera, window.renderer, window.player);
   window.addEventListener("resize", onWindowResize, false);
 };
 
 onWindowResize = function() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  window.camera.aspect = window.innerWidth / window.innerHeight;
+  window.camera.updateProjectionMatrix();
+  window.renderer.setSize(window.innerWidth, window.innerHeight);
 };
 
 render = function() {
   requestAnimationFrame(render);
-  renderer.render(scene, camera);
-  controls.update();
+  window.renderer.render(window.scene, window.camera);
+  window.controls.update();
 };
 
 var Map, Tile;
@@ -364,12 +397,14 @@ addTerrain = function(scene) {
   light = new THREE.DirectionalLight(0xffdd66, 1.5);
   light.position.set(-150, 150, 0);
   light.castShadow = true;
-  d = 200;
+  d = 100;
   light.shadowCameraLeft = -d;
   light.shadowCameraRight = d;
   light.shadowCameraTop = d;
   light.shadowCameraBottom = -d;
   light.shadowCameraFar = 500;
+  light.shadowMapWidth = 2048;
+  light.shadowMapHeight = 2048;
   scene.add(light);
   scene.add(new THREE.AmbientLight(0x404040));
 
@@ -447,7 +482,7 @@ window.globalMeshes.tile0 = {
 
 window.globalMeshes.tile1 = {
   materials: [
-    new THREE.MeshLambertMaterial({
+    new THREE.MeshPhongMaterial({
       id: 2,
       color: 0xffeedd
     })

@@ -1,6 +1,6 @@
 window.globalMeshes.tile1 =
   materials: [
-    new THREE.MeshLambertMaterial
+    new THREE.MeshPhongMaterial
       id: 2
       color: 0xffeedd
   ]
