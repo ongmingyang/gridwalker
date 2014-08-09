@@ -200,7 +200,6 @@ Interactor = (function() {
     this.player = player;
     this.projector = new THREE.Projector();
     this.raycaster = new THREE.Raycaster(window.camera.position, this.player.facingTile.position.clone());
-    this.vector = new THREE.Vector3();
     $(window).mousedown(bind(this, this.onMouseDown));
   }
 
@@ -211,16 +210,17 @@ Interactor = (function() {
   };
 
   Interactor.prototype.onMouseDown = function(event) {
-    var intersects;
+    var intersects, vector;
     event.preventDefault();
-    this.vector = this.vector.set((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
-    this.projector.unprojectVector(this.vector, window.camera);
+    vector = new THREE.Vector3((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
+    this.projector.unprojectVector(vector, window.camera);
     this.objects = _.compact(_.pluck(_.filter(_.values(this.player.tile.adjacent), 'interactive'), 'object'));
-    console.log(this.objects);
-    this.vector.sub(window.camera.position).normalize();
-    this.raycaster.set(window.camera.position, this.vector);
+    vector.sub(window.camera.position).normalize();
+    this.raycaster.set(window.camera.position, vector);
     intersects = this.raycaster.intersectObjects(this.objects);
-    return console.log(intersects);
+    if (!_.isEmpty(intersects)) {
+      return intersects[0].object.interaction();
+    }
   };
 
   return Interactor;
@@ -363,6 +363,7 @@ Map = (function() {
     _.forOwn(this.tiles, function(tile, key) {
       if (tile.object) {
         if (tile.animating || tile.interactive) {
+          console.log(tile.object);
           return scene.add(tile.object);
         } else {
           _.forEach(tile.object.geometry.faces, function(face) {
@@ -395,6 +396,9 @@ Map = (function() {
     tiles = this.tiles;
     hooks = args.hooks || null;
     tiles[args.vertex].animating = true;
+    if (_.isUndefined(args.animate)) {
+      return;
+    }
     this.animations.push({
       description: args.description || null,
       animate: function(t) {
@@ -410,8 +414,9 @@ Map = (function() {
     Helper function for interactives
    */
 
-  Map.prototype.makeInteractive = function(index, walkable) {
+  Map.prototype.makeInteractive = function(index, fn, walkable) {
     this.tiles[index].interactive = true;
+    this.tiles[index].object.interaction = fn || null;
     this.tiles[index].walkable = true || false;
   };
 

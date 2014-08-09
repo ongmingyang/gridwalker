@@ -115,6 +115,8 @@ class Map
     # Update the animating flag in tiles object for display
     tiles[args.vertex].animating = true
 
+    return if _.isUndefined args.animate
+
     @animations.push
       description: args.description or null
       animate: (t) ->
@@ -129,8 +131,11 @@ class Map
   ###
     Helper function for interactives
   ###
-  makeInteractive: (index, walkable) ->
+  makeInteractive: (index, fn, walkable) ->
     @tiles[index].interactive = true
+
+    # Execute this function upon interaction
+    @tiles[index].object.interaction = fn or null
 
     # By default, make interactive objects not walkable
     @tiles[index].walkable = true or false

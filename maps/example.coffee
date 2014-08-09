@@ -20,7 +20,11 @@ map = new Map vertices
 
 map.setTile 6, window.globalMeshes.tile1
 map.setTile 12, window.globalMeshes.cube0
-map.makeInteractive 12
+map.makeInteractive 12, ->
+  map.makeAnimation
+    vertex: 6
+    animate: (vertex, t) ->
+      vertex.y = 2 + Math.sin(t % 62.83)
 
 map.link 0, 1, "north"
 map.link 0, 3, "south"
@@ -35,6 +39,10 @@ map.link 9, 10, "north"
 map.link 10, 11, "north"
 map.link 11, 7, "west"
 map.link 11, 12, "east"
+
+map.makeAnimation
+    description: "Clicking on tile 12 makes tile 6 moves up and down"
+    vertex: 6
 
 map.makeAnimation
   description: "Tile moves up and down"
