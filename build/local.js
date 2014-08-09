@@ -476,7 +476,7 @@ Map = (function() {
     Helper function for interactives
    */
 
-  Map.prototype.makeInteractive = function(index, fn, walkable) {
+  Map.prototype.onInteract = function(index, fn, walkable) {
     this.tiles[index].interactive = true;
     this.tiles[index].object.interaction = fn || null;
     this.tiles[index].walkable = true || false;

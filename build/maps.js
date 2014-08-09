@@ -56,7 +56,7 @@
 
   map.link(10, 12, "east");
 
-  map.makeInteractive(12, function() {
+  map.onInteract(12, function() {
     map.makeAnimation({
       vertex: 2,
       animate: function(vertex, t) {

@@ -153,7 +153,7 @@ class Map
   ###
     Helper function for interactives
   ###
-  makeInteractive: (index, fn, walkable) ->
+  onInteract: (index, fn, walkable) ->
     @tiles[index].interactive = true
 
     # Execute this function upon interaction

@@ -38,7 +38,7 @@ map.link 10, 11, "north"
 map.link 11, 7, "west"
 map.link 10, 12, "east"
 
-map.makeInteractive 12, ->
+map.onInteract 12, ->
   map.makeAnimation
     vertex: 2
     animate: (vertex, t) ->
