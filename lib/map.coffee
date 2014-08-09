@@ -1,4 +1,10 @@
 class Map
+  _opposite =
+    north: "south"
+    south: "north"
+    east: "west"
+    west: "east"
+
   constructor: (vertices, defaultTile) ->
     #  Accepts vertices as an object of THREE.Vector3()'s 
     @tiles = _.mapValues vertices, (vector) ->
@@ -15,22 +21,17 @@ class Map
     
   # Links vertices
   link: (from, to, direction) ->
-    opposite =
-      north: "south"
-      south: "north"
-      east: "west"
-      west: "east"
-
     @tiles[from].adjacent[direction] = @tiles[to]
-    @tiles[to].adjacent[opposite[direction]] = @tiles[from]
+    @tiles[to].adjacent[_opposite[direction]] = @tiles[from]
     return
 
   # Unlinks vertices
   unlink: (from, to) ->
-    _.forOwn @tiles[from].adjacent, (tile, key) ->
-      @tiles[to] = null if tile is @tiles[to]
-    _.forOwn @tiles[to].adjacent, (tile, key) ->
-      @tiles[from] = null if tile is @tiles[from]
+    tiles = @tiles
+    _.forOwn tiles[from].adjacent, (tile, key) ->
+      tile.adjacent[_opposite[key]] = null if tile is tiles[to]
+    _.forOwn tiles[to].adjacent, (tile, key) ->
+      tile.adjacent[_opposite[key]] = null if tile is tiles[from]
     return
 
   # Changes the tile mesh for a single tile
@@ -105,27 +106,48 @@ class Map
     scene.add tileMapMesh
 
   ###
+    Set animating flag on vertices
+  ###
+  declareAnimating: (indices) ->
+    tiles = @tiles
+    _.forEach indices, (index) ->
+      tiles[index].animating = true
+
+  ###
     Helper function that passes animations into an instance array
     that will later be iterated through by the animator object
   ###
   makeAnimation: (args) ->
     tiles = @tiles
-    hooks = args.hooks or null # link and unlink hooks
 
     # Update the animating flag in tiles object for display
     tiles[args.vertex].animating = true
 
-    return if _.isUndefined args.animate
+    if args.animate?
+      @animations.push
+        description: args.description or null
+        type: 'recurring'
+        animate: (t) ->
+          # Move reference point in @tiles
+          args.animate tiles[args.vertex].position, t
 
-    @animations.push
-      description: args.description or null
-      animate: (t) ->
-        # Move reference point in @tiles
-        args.animate tiles[args.vertex].position, t
+          # Move object geometry
+          args.animate tiles[args.vertex].object.position, t
+          tiles[args.vertex].object.verticesNeedUpdate = true
 
-        # Move object geometry
-        args.animate tiles[args.vertex].object.position, t
-        tiles[args.vertex].object.verticesNeedUpdate = true
+    if args.trigger?
+      @animations.push
+        description: args.description or null
+        type: 'single'
+        animate: (delta, started, done) ->
+          hasBegun = started()
+          # Move reference point in @tiles
+          args.trigger tiles[args.vertex].position, delta, hasBegun, done
+
+          # Move object geometry
+          args.trigger tiles[args.vertex].object.position, delta, hasBegun, done
+          tiles[args.vertex].object.verticesNeedUpdate = true
+      return
     return
 
   ###

@@ -19,7 +19,7 @@
     9: new THREE.Vector3(10, 2, 20),
     10: new THREE.Vector3(20, 3, 20),
     11: new THREE.Vector3(30, 2, 20),
-    12: new THREE.Vector3(30, 2, 30)
+    12: new THREE.Vector3(20, 2, 30)
   };
 
   map = new Map(vertices);
@@ -28,15 +28,7 @@
 
   map.setTile(12, window.globalMeshes.cube0);
 
-  map.makeInteractive(12, function() {
-    debugger;
-    return map.makeAnimation({
-      vertex: 6,
-      animate: function(vertex, t) {
-        return vertex.y = 2 + Math.sin(t % 62.83);
-      }
-    });
-  });
+  map.declareAnimating([2, 6, 12]);
 
   map.link(0, 1, "north");
 
@@ -62,11 +54,29 @@
 
   map.link(11, 7, "west");
 
-  map.link(11, 12, "east");
+  map.link(10, 12, "east");
 
-  map.makeAnimation({
-    description: "Clicking on tile 12 makes tile 6 moves up and down",
-    vertex: 6
+  map.makeInteractive(12, function() {
+    map.makeAnimation({
+      vertex: 2,
+      animate: function(vertex, t) {
+        return vertex.y = Math.cos(t % 62.83);
+      }
+    });
+    return map.makeAnimation({
+      vertex: 6,
+      trigger: function(vertex, t, started, done) {
+        if (!started) {
+          map.unlink(6, 7);
+          map.unlink(6, 5);
+          map.computeBoundary();
+        }
+        vertex.z = -2 * t;
+        if (vertex.z <= -10) {
+          return done();
+        }
+      }
+    });
   });
 
   map.makeAnimation({

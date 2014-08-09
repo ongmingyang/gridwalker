@@ -33,18 +33,51 @@ var Animator;
 Animator = (function() {
   function Animator(map) {
     this.animations = map.animations;
-    this.clock = new THREE.Clock(true);
+    this.globalClock = new THREE.Clock(true);
   }
 
+  Animator.prototype.started = function(animation) {
+    return function() {
+      var started;
+      started = animation.started;
+      animation.started = true;
+      return started;
+    };
+  };
+
+  Animator.prototype.done = function(animation) {
+    return function() {
+      return animation.type = 'completed';
+    };
+  };
+
   Animator.prototype.update = function() {
-    var animation, _i, _len, _ref, _results;
+    var a, prune, _i, _len, _ref;
+    prune = false;
     _ref = this.animations;
-    _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      animation = _ref[_i];
-      _results.push(animation.animate(this.clock.getElapsedTime()));
+      a = _ref[_i];
+      if (_.isNull(a)) {
+        prune = true;
+      }
+      switch (a.type) {
+        case 'recurring':
+          a.animate(this.globalClock.getElapsedTime());
+          break;
+        case 'single':
+          a.localClock = new THREE.Clock(true);
+          a.type = 'single-triggered';
+          break;
+        case 'single-triggered':
+          a.animate(a.localClock.getElapsedTime(), this.started(a), this.done(a));
+          break;
+        case 'completed':
+          a = null;
+      }
     }
-    return _results;
+    if (prune) {
+      this.animations = _.compact(this.animations);
+    }
   };
 
   return Animator;
@@ -268,6 +301,15 @@ render = function() {
 var Map, Tile;
 
 Map = (function() {
+  var _opposite;
+
+  _opposite = {
+    north: "south",
+    south: "north",
+    east: "west",
+    west: "east"
+  };
+
   function Map(vertices, defaultTile) {
     this.tiles = _.mapValues(vertices, function(vector) {
       return new Tile({
@@ -284,26 +326,21 @@ Map = (function() {
   }
 
   Map.prototype.link = function(from, to, direction) {
-    var opposite;
-    opposite = {
-      north: "south",
-      south: "north",
-      east: "west",
-      west: "east"
-    };
     this.tiles[from].adjacent[direction] = this.tiles[to];
-    this.tiles[to].adjacent[opposite[direction]] = this.tiles[from];
+    this.tiles[to].adjacent[_opposite[direction]] = this.tiles[from];
   };
 
   Map.prototype.unlink = function(from, to) {
-    _.forOwn(this.tiles[from].adjacent, function(tile, key) {
-      if (tile === this.tiles[to]) {
-        return this.tiles[to] = null;
+    var tiles;
+    tiles = this.tiles;
+    _.forOwn(tiles[from].adjacent, function(tile, key) {
+      if (tile === tiles[to]) {
+        return tile.adjacent[_opposite[key]] = null;
       }
     });
-    _.forOwn(this.tiles[to].adjacent, function(tile, key) {
-      if (tile === this.tiles[from]) {
-        return this.tiles[from] = null;
+    _.forOwn(tiles[to].adjacent, function(tile, key) {
+      if (tile === tiles[from]) {
+        return tile.adjacent[_opposite[key]] = null;
       }
     });
   };
@@ -363,7 +400,6 @@ Map = (function() {
     _.forOwn(this.tiles, function(tile, key) {
       if (tile.object) {
         if (tile.animating || tile.interactive) {
-          console.log(tile.object);
           return scene.add(tile.object);
         } else {
           _.forEach(tile.object.geometry.faces, function(face) {
@@ -387,26 +423,52 @@ Map = (function() {
 
 
   /*
+    Set animating flag on vertices
+   */
+
+  Map.prototype.declareAnimating = function(indices) {
+    var tiles;
+    tiles = this.tiles;
+    return _.forEach(indices, function(index) {
+      return tiles[index].animating = true;
+    });
+  };
+
+
+  /*
     Helper function that passes animations into an instance array
     that will later be iterated through by the animator object
    */
 
   Map.prototype.makeAnimation = function(args) {
-    var hooks, tiles;
+    var tiles;
     tiles = this.tiles;
-    hooks = args.hooks || null;
     tiles[args.vertex].animating = true;
-    if (_.isUndefined(args.animate)) {
+    if (args.animate != null) {
+      this.animations.push({
+        description: args.description || null,
+        type: 'recurring',
+        animate: function(t) {
+          args.animate(tiles[args.vertex].position, t);
+          args.animate(tiles[args.vertex].object.position, t);
+          return tiles[args.vertex].object.verticesNeedUpdate = true;
+        }
+      });
+    }
+    if (args.trigger != null) {
+      this.animations.push({
+        description: args.description || null,
+        type: 'single',
+        animate: function(delta, started, done) {
+          var hasBegun;
+          hasBegun = started();
+          args.trigger(tiles[args.vertex].position, delta, hasBegun, done);
+          args.trigger(tiles[args.vertex].object.position, delta, hasBegun, done);
+          return tiles[args.vertex].object.verticesNeedUpdate = true;
+        }
+      });
       return;
     }
-    this.animations.push({
-      description: args.description || null,
-      animate: function(t) {
-        args.animate(tiles[args.vertex].position, t);
-        args.animate(tiles[args.vertex].object.position, t);
-        return tiles[args.vertex].object.verticesNeedUpdate = true;
-      }
-    });
   };
 
 
