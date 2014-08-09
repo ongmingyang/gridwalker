@@ -139,13 +139,15 @@ class Map
       @animations.push
         description: args.description or null
         type: 'single'
-        animate: (delta, started, done) ->
-          hasBegun = started()
-          # Move reference point in @tiles
-          args.trigger tiles[args.vertex].position, delta, hasBegun, done
+        animate: (delta, controls) ->
 
-          # Move object geometry
-          args.trigger tiles[args.vertex].object.position, delta, hasBegun, done
+          # Move reference point in @tiles
+          # All control actions are performed in this loop
+          args.trigger tiles[args.vertex].position, delta,
+            triggered: controls.triggered()
+            done: controls.done
+
+          tiles[args.vertex].object.position.copy tiles[args.vertex].position
           tiles[args.vertex].object.verticesNeedUpdate = true
       return
     return

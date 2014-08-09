@@ -26,6 +26,8 @@ class Interactor
     intersects = @raycaster.intersectObjects @objects
 
     unless _.isEmpty intersects
-      # Apply object's interaction TODO: be more customisable?
-      intersects[0].object.interaction()
+      # TODO: make sure pressing more than once does not screw up counter, use flag
+      target = intersects[0].object
+      target.interactionCounter = 0 if _.isUndefined target.interactionCounter
+      target.interaction target.interactionCounter++
 

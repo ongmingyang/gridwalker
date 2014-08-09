@@ -28,7 +28,7 @@
 
   map.setTile(12, window.globalMeshes.cube0);
 
-  map.declareAnimating([2, 6, 12]);
+  map.declareAnimating([2, 6, 11]);
 
   map.link(0, 1, "north");
 
@@ -56,7 +56,7 @@
 
   map.link(10, 12, "east");
 
-  map.onInteract(12, function() {
+  map.onInteract(12, function(n) {
     map.makeAnimation({
       vertex: 2,
       animate: function(vertex, t) {
@@ -65,15 +65,29 @@
     });
     return map.makeAnimation({
       vertex: 6,
-      trigger: function(vertex, t, started, done) {
-        if (!started) {
+      trigger: function(vertex, t, controls) {
+        console.log(n);
+        if (controls.triggered) {
           map.unlink(6, 7);
           map.unlink(6, 5);
           map.computeBoundary();
         }
-        vertex.z = -2 * t;
-        if (vertex.z <= -10) {
-          return done();
+        if (n % 2 === 0) {
+          vertex.z = -2 * t;
+        }
+        if (n % 2 === 1) {
+          vertex.z = -10 + 2 * t;
+        }
+        if (vertex.z < -10) {
+          vertex.z = -10;
+          controls.done();
+        }
+        if (vertex.z > 0) {
+          vertex.z = 0;
+          map.link(6, 7, "east");
+          map.link(6, 5, "south");
+          map.computeBoundary();
+          return controls.done();
         }
       }
     });

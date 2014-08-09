@@ -36,12 +36,41 @@ Animator = (function() {
     this.globalClock = new THREE.Clock(true);
   }
 
-  Animator.prototype.started = function(animation) {
+
+  /*
+    Returns the triggered state of the animation:
+      @return true
+        The animation was just triggered (happens only once)
+      @return false
+        The animation was triggered some time ago (happens the rest of the time)
+   */
+
+  Animator.prototype.triggered = function(animation) {
     return function() {
-      var started;
-      started = animation.started;
-      animation.started = true;
-      return started;
+      if (_.isUndefined(animation.triggered)) {
+        animation.triggered = true;
+      } else {
+        animation.triggered = false;
+      }
+      return animation.triggered;
+    };
+  };
+
+  Animator.prototype.pause = function(animation) {
+    return function() {
+      return animation.pause = true;
+    };
+  };
+
+  Animator.prototype.unpause = function(animation) {
+    return function() {
+      return animation.pause = false;
+    };
+  };
+
+  Animator.prototype.togglePause = function(animation) {
+    return function() {
+      return animation.pause = !animation.pause;
     };
   };
 
@@ -50,6 +79,13 @@ Animator = (function() {
       return animation.type = 'completed';
     };
   };
+
+
+  /*
+    This function doesn't do anything
+   */
+
+  Animator.prototype.doNothing = function() {};
 
   Animator.prototype.update = function() {
     var a, prune, _i, _len, _ref;
@@ -60,6 +96,9 @@ Animator = (function() {
       if (_.isNull(a)) {
         prune = true;
       }
+      if (a.paused != null) {
+        continue;
+      }
       switch (a.type) {
         case 'recurring':
           a.animate(this.globalClock.getElapsedTime());
@@ -69,7 +108,13 @@ Animator = (function() {
           a.type = 'single-triggered';
           break;
         case 'single-triggered':
-          a.animate(a.localClock.getElapsedTime(), this.started(a), this.done(a));
+          a.animate(a.localClock.getElapsedTime(), {
+            triggered: this.triggered(a),
+            pause: this.pause(a),
+            unpause: this.unpause(a),
+            done: this.done(a),
+            nothing: this.doNothing
+          });
           break;
         case 'completed':
           a = null;
@@ -243,7 +288,7 @@ Interactor = (function() {
   };
 
   Interactor.prototype.onMouseDown = function(event) {
-    var intersects, vector;
+    var intersects, target, vector;
     event.preventDefault();
     vector = new THREE.Vector3((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
     this.projector.unprojectVector(vector, window.camera);
@@ -252,7 +297,11 @@ Interactor = (function() {
     this.raycaster.set(window.camera.position, vector);
     intersects = this.raycaster.intersectObjects(this.objects);
     if (!_.isEmpty(intersects)) {
-      return intersects[0].object.interaction();
+      target = intersects[0].object;
+      if (_.isUndefined(target.interactionCounter)) {
+        target.interactionCounter = 0;
+      }
+      return target.interaction(target.interactionCounter++);
     }
   };
 
@@ -459,11 +508,12 @@ Map = (function() {
       this.animations.push({
         description: args.description || null,
         type: 'single',
-        animate: function(delta, started, done) {
-          var hasBegun;
-          hasBegun = started();
-          args.trigger(tiles[args.vertex].position, delta, hasBegun, done);
-          args.trigger(tiles[args.vertex].object.position, delta, hasBegun, done);
+        animate: function(delta, controls) {
+          args.trigger(tiles[args.vertex].position, delta, {
+            triggered: controls.triggered(),
+            done: controls.done
+          });
+          tiles[args.vertex].object.position.copy(tiles[args.vertex].position);
           return tiles[args.vertex].object.verticesNeedUpdate = true;
         }
       });
