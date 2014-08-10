@@ -80,13 +80,6 @@ Animator = (function() {
     };
   };
 
-
-  /*
-    This function doesn't do anything
-   */
-
-  Animator.prototype.doNothing = function() {};
-
   Animator.prototype.update = function() {
     var a, prune, _i, _len, _ref;
     prune = false;
@@ -112,8 +105,7 @@ Animator = (function() {
             triggered: this.triggered(a),
             pause: this.pause(a),
             unpause: this.unpause(a),
-            done: this.done(a),
-            nothing: this.doNothing
+            done: this.done(a)
           });
           break;
         case 'completed':
@@ -298,10 +290,13 @@ Interactor = (function() {
     intersects = this.raycaster.intersectObjects(this.objects);
     if (!_.isEmpty(intersects)) {
       target = intersects[0].object;
+      if (target.freeze) {
+        return;
+      }
       if (_.isUndefined(target.interactionCounter)) {
         target.interactionCounter = 0;
       }
-      return target.interaction(target.interactionCounter++);
+      target.interaction(target.interactionCounter++);
     }
   };
 
@@ -364,12 +359,12 @@ Map = (function() {
       return new Tile({
         position: vector,
         walkable: true,
+        wall: false,
         animating: false,
         interactive: false,
         object: defaultTile || window.globalMeshes.tile0.init(vector)
       });
     });
-    this.walls = {};
     this.animations = [];
     this.startTile = this.tiles[0];
   }
@@ -384,12 +379,12 @@ Map = (function() {
     tiles = this.tiles;
     _.forOwn(tiles[from].adjacent, function(tile, key) {
       if (tile === tiles[to]) {
-        return tile.adjacent[_opposite[key]] = null;
+        return tiles[from].adjacent[key] = null;
       }
     });
     _.forOwn(tiles[to].adjacent, function(tile, key) {
       if (tile === tiles[from]) {
-        return tile.adjacent[_opposite[key]] = null;
+        return tiles[to].adjacent[key] = null;
       }
     });
   };
@@ -403,14 +398,11 @@ Map = (function() {
     Call this function after all vertices have been linked
     Function creates "wall" tiles for each null adjacent reference
     so that the player can compute the camera view
-    TODO: it should be possible to custom define wall tiles in the future
-    TODO: wall class should extend tile class? discuss
    */
 
   Map.prototype.computeBoundary = function() {
-    var axes, i, walls;
+    var axes, i;
     i = 0;
-    walls = this.walls;
     axes = {
       north: new THREE.Vector3(10, 0, 0),
       south: new THREE.Vector3(-10, 0, 0),
@@ -422,13 +414,15 @@ Map = (function() {
         return;
       }
       _.forOwn(tile.adjacent, function(obj, direction) {
-        if (_.isNull(obj)) {
-          walls[i] = new Tile({
+        var wall;
+        if (_.isNull(obj) || obj.wall) {
+          wall = new Tile({
             position: tile.position.clone(),
+            wall: true,
             walkable: false
           });
-          walls[i].position.add(axes[direction]);
-          tile.adjacent[direction] = walls[i];
+          wall.position.add(axes[direction]);
+          tile.adjacent[direction] = wall;
           i++;
         }
       });
@@ -490,17 +484,18 @@ Map = (function() {
    */
 
   Map.prototype.makeAnimation = function(args) {
-    var tiles;
+    var tile, tiles;
     tiles = this.tiles;
-    tiles[args.vertex].animating = true;
+    tile = tiles[args.vertex];
+    tile.animating = true;
     if (args.animate != null) {
       this.animations.push({
         description: args.description || null,
         type: 'recurring',
         animate: function(t) {
-          args.animate(tiles[args.vertex].position, t);
-          args.animate(tiles[args.vertex].object.position, t);
-          return tiles[args.vertex].object.verticesNeedUpdate = true;
+          args.animate(tile.position, t);
+          args.animate(tile.object.position, t);
+          return tile.object.verticesNeedUpdate = true;
         }
       });
     }
@@ -509,12 +504,12 @@ Map = (function() {
         description: args.description || null,
         type: 'single',
         animate: function(delta, controls) {
-          args.trigger(tiles[args.vertex].position, delta, {
+          args.trigger(tile.position, delta, {
             triggered: controls.triggered(),
             done: controls.done
           });
-          tiles[args.vertex].object.position.copy(tiles[args.vertex].position);
-          return tiles[args.vertex].object.verticesNeedUpdate = true;
+          tile.object.position.copy(tile.position);
+          return tile.object.verticesNeedUpdate = true;
         }
       });
       return;
@@ -532,6 +527,14 @@ Map = (function() {
     this.tiles[index].walkable = true || false;
   };
 
+  Map.prototype.freezeInteraction = function(index) {
+    return this.tiles[index].object.freeze = true;
+  };
+
+  Map.prototype.unfreezeInteraction = function(index) {
+    return this.tiles[index].object.freeze = false;
+  };
+
   return Map;
 
 })();
@@ -544,6 +547,7 @@ Tile = (function() {
     }
     this.position = init.position || new THREE.Vector3();
     this.walkable = init.walkable || false;
+    this.wall = init.wall || false;
     this.object = init.object || null;
     this.adjacent = {
       north: init.north || null,

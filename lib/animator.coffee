@@ -37,12 +37,6 @@ class Animator
     ->
       animation.type = 'completed'
 
-  ###
-    This function doesn't do anything
-  ###
-  doNothing: ->
-    return
-
   update: ->
     prune = false
 
@@ -65,7 +59,6 @@ class Animator
             pause: @pause a
             unpause: @unpause a
             done: @done a
-            nothing: @doNothing
         when 'completed'
           a = null
 

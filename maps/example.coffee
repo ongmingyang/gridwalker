@@ -15,14 +15,24 @@ vertices =
   10: new THREE.Vector3(20, 3, 20)
   11: new THREE.Vector3(30, 2, 20)
   12: new THREE.Vector3(20, 2, 30)
+  13: new THREE.Vector3(0, 0, -20)
+  14: new THREE.Vector3(10, 0, -20)
+  15: new THREE.Vector3(20, 0, -20)
+  16: new THREE.Vector3(30, 1, -20)
+  17: new THREE.Vector3(40, 2, -10)
+  18: new THREE.Vector3(50, 3, -10)
+  19: new THREE.Vector3(50, 4, 0)
+  20: new THREE.Vector3(60, 4, 0)
 
 map = new Map vertices
 
 map.setTile 6, window.globalMeshes.tile1
 map.setTile 12, window.globalMeshes.cube0
+map.setTile 19, window.globalMeshes.tile1
+map.setTile 20, window.globalMeshes.cube0
 
 # Need to declare animating tiles first
-map.declareAnimating [2, 6, 11]
+map.declareAnimating [6, 11, 19]
 
 map.link 0, 1, "north"
 map.link 0, 3, "south"
@@ -37,19 +47,33 @@ map.link 9, 10, "north"
 map.link 10, 11, "north"
 map.link 11, 7, "west"
 map.link 10, 12, "east"
+map.link 4, 13, "west"
+map.link 13, 14, "north"
+map.link 14, 15, "north"
+map.link 15, 16, "north"
+map.link 17, 18, "north"
+map.link 18, 19, "east"
+map.link 19, 20, "north"
+
+map.onInteract 20, (n) ->
+  alert "win!"
 
 map.onInteract 12, (n) ->
+
+  # Prevents player from clicking target again until
+  # animation is done
+  map.freezeInteraction 12
+
   map.makeAnimation
-    vertex: 2
-    animate: (vertex, t) ->
-      vertex.y = Math.cos(t % 62.83)
-  map.makeAnimation
+    description: "This slides the orange block to the left so that the player can
+                  step across to the next platform from the west path"
     vertex: 6
     trigger: (vertex, t, controls) ->
-      console.log n
       if controls.triggered
         map.unlink 6, 7
         map.unlink 6, 5
+        map.unlink 6, 16
+        map.unlink 6, 17
         map.computeBoundary()
       if n % 2 is 0
         vertex.z = -2 * t
@@ -57,13 +81,47 @@ map.onInteract 12, (n) ->
         vertex.z = -10 + 2 * t
       if vertex.z < -10
         vertex.z = -10
+        map.link 6, 16, "west"
+        map.link 6, 17, "north"
+        map.computeBoundary()
+        map.unfreezeInteraction 12
         controls.done()
       if vertex.z > 0
         vertex.z = 0
         map.link 6, 7, "east"
         map.link 6, 5, "south"
         map.computeBoundary()
+        map.unfreezeInteraction 12
         controls.done()
+
+  map.makeAnimation
+    description: "This slides the northmost orange block to the right so that the player is prevented
+                  from stepping across to the next platform from the west path"
+    vertex: 19
+    trigger: (vertex, t, controls) ->
+      if controls.triggered
+        map.unlink 19, 18
+        map.computeBoundary()
+      if n % 3 is 0
+        vertex.z = 2 * t
+        vertex.y = 4 + t
+        if vertex.z > 10
+          vertex.z = 10
+          controls.done()
+      if n % 3 is 1
+        vertex.z = 10
+        vertex.y = 9 - 2 * t
+        if vertex.y < -1
+          controls.done()
+      if n % 3 is 2
+        vertex.y = -1 + t
+        vertex.z = 10 - 2 * t
+        if vertex.z < 0
+          vertex.z = 0
+          vertex.y = 4
+          map.link 18, 19, "east"
+          map.computeBoundary()
+          controls.done()
 
 map.makeAnimation
   description: "Tile moves up and down"

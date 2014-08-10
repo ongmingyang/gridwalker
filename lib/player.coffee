@@ -5,6 +5,7 @@
 ###
 
 class Player
+  _beginFacing = 'north'
   _playerHeight = 3
 
   # Turn object for easy reference
@@ -33,7 +34,7 @@ class Player
     @map = map
     @tile = map.startTile
     @position = @tile.position
-    @facing = "north" # begin facing north
+    @facing = _beginFacing
     @facingTile = @tile.adjacent[@facing]
   
   # Function computes facing target of camera

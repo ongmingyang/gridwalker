@@ -11,11 +11,11 @@ class Map
       new Tile
         position: vector
         walkable: true
+        wall: false
         animating: false
         interactive: false
         object: defaultTile or window.globalMeshes.tile0.init vector
     
-    @walls = {} # Will be populated later with @computeBoundary
     @animations = []
     @startTile = @tiles[0]
     
@@ -29,9 +29,9 @@ class Map
   unlink: (from, to) ->
     tiles = @tiles
     _.forOwn tiles[from].adjacent, (tile, key) ->
-      tile.adjacent[_opposite[key]] = null if tile is tiles[to]
+      tiles[from].adjacent[key] = null if tile is tiles[to]
     _.forOwn tiles[to].adjacent, (tile, key) ->
-      tile.adjacent[_opposite[key]] = null if tile is tiles[from]
+      tiles[to].adjacent[key] = null if tile is tiles[from]
     return
 
   # Changes the tile mesh for a single tile
@@ -42,12 +42,9 @@ class Map
     Call this function after all vertices have been linked
     Function creates "wall" tiles for each null adjacent reference
     so that the player can compute the camera view
-    TODO: it should be possible to custom define wall tiles in the future
-    TODO: wall class should extend tile class? discuss
   ###
   computeBoundary: ->
     i = 0 # counter for number of walls
-    walls = @walls # reference object for walls
     axes =
       north: new THREE.Vector3(10, 0, 0)
       south: new THREE.Vector3(-10, 0, 0)
@@ -60,13 +57,14 @@ class Map
       return unless tile.walkable
 
       _.forOwn tile.adjacent, (obj, direction) ->
-        if _.isNull(obj)
-          walls[i] = new Tile
+        if _.isNull(obj) or obj.wall
+          wall = new Tile
             position: tile.position.clone()
+            wall: true
             walkable: false
 
-          walls[i].position.add axes[direction]
-          tile.adjacent[direction] = walls[i]
+          wall.position.add axes[direction]
+          tile.adjacent[direction] = wall
           i++
         return
       return
@@ -119,9 +117,10 @@ class Map
   ###
   makeAnimation: (args) ->
     tiles = @tiles
+    tile = tiles[args.vertex]
 
     # Update the animating flag in tiles object for display
-    tiles[args.vertex].animating = true
+    tile.animating = true
 
     if args.animate?
       @animations.push
@@ -129,11 +128,11 @@ class Map
         type: 'recurring'
         animate: (t) ->
           # Move reference point in @tiles
-          args.animate tiles[args.vertex].position, t
+          args.animate tile.position, t
 
           # Move object geometry
-          args.animate tiles[args.vertex].object.position, t
-          tiles[args.vertex].object.verticesNeedUpdate = true
+          args.animate tile.object.position, t
+          tile.object.verticesNeedUpdate = true
 
     if args.trigger?
       @animations.push
@@ -143,12 +142,14 @@ class Map
 
           # Move reference point in @tiles
           # All control actions are performed in this loop
-          args.trigger tiles[args.vertex].position, delta,
+          args.trigger tile.position, delta,
             triggered: controls.triggered()
             done: controls.done
 
-          tiles[args.vertex].object.position.copy tiles[args.vertex].position
-          tiles[args.vertex].object.verticesNeedUpdate = true
+          tile.object.position.copy tile.position
+          # TODO: make walls animate too?
+
+          tile.object.verticesNeedUpdate = true
       return
     return
 
@@ -165,18 +166,9 @@ class Map
     @tiles[index].walkable = true or false
     return
 
-class Tile
-  constructor: (init) ->
-    if _.isEmpty(init)
-      console.log "WARNING: empty tile initialised!"
-      return
+  freezeInteraction: (index) ->
+    @tiles[index].object.freeze = true
 
-    @position = init.position or new THREE.Vector3()
-    @walkable = init.walkable or false
-    @object = init.object or null
-    @adjacent =
-      north: init.north or null
-      south: init.south or null
-      east: init.east or null
-      west: init.west or null
+  unfreezeInteraction: (index) ->
+    @tiles[index].object.freeze = false
 

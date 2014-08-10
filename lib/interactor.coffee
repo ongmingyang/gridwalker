@@ -26,8 +26,13 @@ class Interactor
     intersects = @raycaster.intersectObjects @objects
 
     unless _.isEmpty intersects
-      # TODO: make sure pressing more than once does not screw up counter, use flag
       target = intersects[0].object
+
+      # Disallow interaction if the target is frozen
+      return if target.freeze
+
       target.interactionCounter = 0 if _.isUndefined target.interactionCounter
       target.interaction target.interactionCounter++
+
+    return
 
