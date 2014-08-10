@@ -28,10 +28,3 @@ python server.py
 ```
 
 And open http://localhost:8000 in your browser
-
-TODO
-----
-
-Mouse event listeners
-
-Looking up (camera.up gives the up vector)
