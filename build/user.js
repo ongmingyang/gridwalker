@@ -97,7 +97,6 @@
           map.unlink(6, 5);
           map.unlink(6, 16);
           map.unlink(6, 17);
-          map.computeBoundary();
         }
         if (n % 2 === 0) {
           vertex.z = -2 * t;
@@ -109,7 +108,6 @@
           vertex.z = -10;
           map.link(6, 16, "west");
           map.link(6, 17, "north");
-          map.computeBoundary();
           map.unfreezeInteraction(12);
           controls.done();
         }
@@ -117,7 +115,6 @@
           vertex.z = 0;
           map.link(6, 7, "east");
           map.link(6, 5, "south");
-          map.computeBoundary();
           map.unfreezeInteraction(12);
           return controls.done();
         }
@@ -129,7 +126,6 @@
       trigger: function(vertex, t, controls) {
         if (controls.triggered) {
           map.unlink(19, 18);
-          map.computeBoundary();
         }
         if (n % 3 === 0) {
           vertex.z = 2 * t;
@@ -153,7 +149,6 @@
             vertex.z = 0;
             vertex.y = 4;
             map.link(18, 19, "east");
-            map.computeBoundary();
             return controls.done();
           }
         }
@@ -168,8 +163,6 @@
       return vertex.y = 2 + Math.sin(t % 62.83);
     }
   });
-
-  map.computeBoundary();
 
   window.globalMaps.example = map;
 

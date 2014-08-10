@@ -74,7 +74,6 @@ map.onInteract 12, (n) ->
         map.unlink 6, 5
         map.unlink 6, 16
         map.unlink 6, 17
-        map.computeBoundary()
       if n % 2 is 0
         vertex.z = -2 * t
       if n % 2 is 1
@@ -83,14 +82,12 @@ map.onInteract 12, (n) ->
         vertex.z = -10
         map.link 6, 16, "west"
         map.link 6, 17, "north"
-        map.computeBoundary()
         map.unfreezeInteraction 12
         controls.done()
       if vertex.z > 0
         vertex.z = 0
         map.link 6, 7, "east"
         map.link 6, 5, "south"
-        map.computeBoundary()
         map.unfreezeInteraction 12
         controls.done()
 
@@ -101,7 +98,6 @@ map.onInteract 12, (n) ->
     trigger: (vertex, t, controls) ->
       if controls.triggered
         map.unlink 19, 18
-        map.computeBoundary()
       if n % 3 is 0
         vertex.z = 2 * t
         vertex.y = 4 + t
@@ -120,7 +116,6 @@ map.onInteract 12, (n) ->
           vertex.z = 0
           vertex.y = 4
           map.link 18, 19, "east"
-          map.computeBoundary()
           controls.done()
 
 map.makeAnimation
@@ -128,9 +123,6 @@ map.makeAnimation
   vertex: 11
   animate: (vertex, t) ->
     vertex.y = 2 + Math.sin(t % 62.83)
-
-# Creates walls around each unlinked tile
-map.computeBoundary()
 
 # Bind map to global object
 window.globalMaps.example = map

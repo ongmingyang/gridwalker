@@ -28,3 +28,7 @@ python server.py
 ```
 
 And open http://localhost:8000 in your browser
+
+TODO
+----
+Todo list is populated in the [wiki](https://github.com/ongmingyang/gridwalker/wiki)!

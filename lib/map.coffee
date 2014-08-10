@@ -11,7 +11,6 @@ class Map
       new Tile
         position: vector
         walkable: true
-        wall: false
         animating: false
         interactive: false
         object: defaultTile or window.globalMeshes.tile0.init vector
@@ -38,37 +37,6 @@ class Map
   setTile: (id, tile) ->
     @tiles[id].object = tile.init @tiles[id].object.position
   
-  ###
-    Call this function after all vertices have been linked
-    Function creates "wall" tiles for each null adjacent reference
-    so that the player can compute the camera view
-  ###
-  computeBoundary: ->
-    i = 0 # counter for number of walls
-    axes =
-      north: new THREE.Vector3(10, 0, 0)
-      south: new THREE.Vector3(-10, 0, 0)
-      east: new THREE.Vector3(0, 0, 10)
-      west: new THREE.Vector3(0, 0, -10)
-
-    _.forOwn @tiles, (tile, key) ->
-
-      # Only compute walls for walkable tiles
-      return unless tile.walkable
-
-      _.forOwn tile.adjacent, (obj, direction) ->
-        if _.isNull(obj) or obj.wall
-          wall = new Tile
-            position: tile.position.clone()
-            wall: true
-            walkable: false
-
-          wall.position.add axes[direction]
-          tile.adjacent[direction] = wall
-          i++
-        return
-      return
-
   ###
     Merges all non-animating tile geometries and places them onto the scene
     ONLY MERGE NON-ANIMATING TILE GEOMETRIES KK THX
@@ -147,7 +115,6 @@ class Map
             done: controls.done
 
           tile.object.position.copy tile.position
-          # TODO: make walls animate too?
 
           tile.object.verticesNeedUpdate = true
       return

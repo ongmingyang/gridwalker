@@ -6,7 +6,7 @@ class Interactor
   constructor: (player) ->
     @player = player
     @projector = new THREE.Projector()
-    @raycaster = new THREE.Raycaster window.camera.position, @player.facingTile.position.clone()
+    @raycaster = new THREE.Raycaster window.camera.position, @player.facingTilePosition.clone()
     $( window ).mousedown bind(this, @onMouseDown)
 
   # Class function binds key event listeners to window
@@ -20,7 +20,7 @@ class Interactor
 
     vector = new THREE.Vector3 ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1, 0.5
     @projector.unprojectVector vector, window.camera
-    @objects = _.compact _.pluck _.filter(_.values(@player.tile.adjacent), 'interactive'), 'object'
+    @objects = _.compact _.pluck _.filter(_.compact(_.values(@player.tile.adjacent)), 'interactive'), 'object'
     vector.sub( window.camera.position ).normalize()
     @raycaster.set window.camera.position, vector
     intersects = @raycaster.intersectObjects @objects

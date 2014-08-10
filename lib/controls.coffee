@@ -142,7 +142,7 @@ class Controls
       @object.position.copy @oldPosition
 
       # Capture edge cases based on some tolerance (0.01)
-      # Happens when player walks into a wall; need to end freeze loop
+      # Happens when player walks into a null tile; need to end freeze loop
       @currentSteps = 0 if delta.length() <= 0.01
       @oldTarget.add delta
 

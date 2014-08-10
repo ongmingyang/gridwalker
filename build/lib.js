@@ -78,7 +78,7 @@ Animator = (function() {
 
   Animator.prototype.done = function(animation) {
     return function() {
-      window.player.update();
+      window.player.updateFacing();
       return animation.type = 'completed';
     };
   };
@@ -272,7 +272,7 @@ Interactor = (function() {
   function Interactor(player) {
     this.player = player;
     this.projector = new THREE.Projector();
-    this.raycaster = new THREE.Raycaster(window.camera.position, this.player.facingTile.position.clone());
+    this.raycaster = new THREE.Raycaster(window.camera.position, this.player.facingTilePosition.clone());
     $(window).mousedown(bind(this, this.onMouseDown));
   }
 
@@ -287,7 +287,7 @@ Interactor = (function() {
     event.preventDefault();
     vector = new THREE.Vector3((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
     this.projector.unprojectVector(vector, window.camera);
-    this.objects = _.compact(_.pluck(_.filter(_.values(this.player.tile.adjacent), 'interactive'), 'object'));
+    this.objects = _.compact(_.pluck(_.filter(_.compact(_.values(this.player.tile.adjacent)), 'interactive'), 'object'));
     vector.sub(window.camera.position).normalize();
     this.raycaster.set(window.camera.position, vector);
     intersects = this.raycaster.intersectObjects(this.objects);
@@ -362,7 +362,6 @@ Map = (function() {
       return new Tile({
         position: vector,
         walkable: true,
-        wall: false,
         animating: false,
         interactive: false,
         object: defaultTile || window.globalMeshes.tile0.init(vector)
@@ -394,42 +393,6 @@ Map = (function() {
 
   Map.prototype.setTile = function(id, tile) {
     return this.tiles[id].object = tile.init(this.tiles[id].object.position);
-  };
-
-
-  /*
-    Call this function after all vertices have been linked
-    Function creates "wall" tiles for each null adjacent reference
-    so that the player can compute the camera view
-   */
-
-  Map.prototype.computeBoundary = function() {
-    var axes, i;
-    i = 0;
-    axes = {
-      north: new THREE.Vector3(10, 0, 0),
-      south: new THREE.Vector3(-10, 0, 0),
-      east: new THREE.Vector3(0, 0, 10),
-      west: new THREE.Vector3(0, 0, -10)
-    };
-    return _.forOwn(this.tiles, function(tile, key) {
-      if (!tile.walkable) {
-        return;
-      }
-      _.forOwn(tile.adjacent, function(obj, direction) {
-        var wall;
-        if (_.isNull(obj) || obj.wall) {
-          wall = new Tile({
-            position: tile.position.clone(),
-            wall: true,
-            walkable: false
-          });
-          wall.position.add(axes[direction]);
-          tile.adjacent[direction] = wall;
-          i++;
-        }
-      });
-    });
   };
 
 
@@ -547,6 +510,20 @@ Map = (function() {
   The Player class is a representation of the player on
   the map. The player faces a direction, and has a set of adjacent
   tiles. The player's camera is defined and updated in this.computeCamera
+
+  Player
+    @param position: The position of the tile the player is standing on
+
+    @param facing: The direction (NSEW) the player is facing
+
+    @param tile: The tile object the player is standing on
+
+    @param facingTile: The tile object the player is facing
+        null if player is not facing any tile
+
+    @param facingTilePosition: The position of the tile object that
+        the player is facing. If the facingTile is null, gives the
+        vector that the player ought to be facing
  */
 var Player;
 
@@ -585,12 +562,12 @@ Player = (function() {
     this.tile = map.startTile;
     this.position = this.tile.position;
     this.facing = _beginFacing;
-    this.facingTile = this.tile.adjacent[this.facing];
+    this.updateFacing();
   }
 
   Player.prototype.facingTarget = function() {
     var v;
-    v = this.facingTile.position.clone();
+    v = this.facingTilePosition.clone();
     v.y += _playerHeight;
     return v;
   };
@@ -604,19 +581,22 @@ Player = (function() {
 
   Player.prototype.lookRight = function() {
     this.facing = turn[this.facing]["right"];
-    this.facingTile = this.tile.adjacent[this.facing];
+    this.updateFacing();
   };
 
   Player.prototype.lookLeft = function() {
     this.facing = turn[this.facing]["left"];
-    this.facingTile = this.tile.adjacent[this.facing];
+    this.updateFacing();
   };
 
   Player.prototype.moveForward = function() {
+    if (_.isNull(this.facingTile)) {
+      return;
+    }
     if (this.facingTile.walkable) {
       this.tile = this.facingTile;
       this.position = this.tile.position;
-      this.facingTile = this.tile.adjacent[this.facing];
+      this.updateFacing();
     }
   };
 
@@ -624,7 +604,7 @@ Player = (function() {
     if (map.tiles[index].walkable) {
       this.tile = map.tiles[index];
       this.position = this.tile.position;
-      this.facingTile = this.tile.adjacent[this.facing];
+      this.updateFacing();
     }
   };
 
@@ -634,8 +614,9 @@ Player = (function() {
     of an event, usually terrain changing
    */
 
-  Player.prototype.update = function() {
-    return this.facingTile = this.tile.adjacent[this.facing];
+  Player.prototype.updateFacing = function() {
+    this.facingTile = this.tile.adjacent[this.facing];
+    return this.facingTilePosition = _.isNull(this.facingTile) ? this.tile["default"](this.facing) : this.facingTile.position;
   };
 
   return Player;
@@ -652,7 +633,6 @@ Tile = (function() {
     }
     this.position = init.position || new THREE.Vector3();
     this.walkable = init.walkable || false;
-    this.wall = init.wall || false;
     this.object = init.object || null;
     this.adjacent = {
       north: init.north || null,
@@ -661,6 +641,34 @@ Tile = (function() {
       west: init.west || null
     };
   }
+
+
+  /*
+    Function gives default direction player
+    faces when standing on tile
+   */
+
+  Tile.prototype["default"] = function(direction, bearing) {
+    var position;
+    bearing = bearing || 'default';
+    position = this.position.clone();
+    if (bearing === 'default') {
+      switch (direction) {
+        case 'north':
+          position.x += 10;
+          break;
+        case 'south':
+          position.x -= 10;
+          break;
+        case 'west':
+          position.z -= 10;
+          break;
+        case 'east':
+          position.z += 10;
+      }
+      return position;
+    }
+  };
 
   return Tile;
 

@@ -35,7 +35,7 @@ class Animator
 
   done: (animation) ->
     ->
-      window.player.update()
+      window.player.updateFacing()
       animation.type = 'completed'
 
   update: ->
