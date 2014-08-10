@@ -1,6 +1,7 @@
 body {
   margin: 0px;
   padding: 0px;
+  background-color: #000;
 }
 
 div#narration-container {
@@ -26,4 +27,13 @@ div#narration-textbox {
 div#narration-container.exit {
   opacity: 0;
   top: 22%;
+}
+
+canvas {
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+
+.dark {
+  opacity: 0.5;
 }

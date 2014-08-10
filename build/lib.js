@@ -534,6 +534,7 @@ Narrator = (function() {
   function Narrator() {
     this.textbox = $("<div id='narration-container'><div id='narration-textbox'></div></div>").appendTo('body');
     this.text = this.textbox.children('div#narration-textbox');
+    this.screen = $(window.renderer.domElement);
     this.narrate("Press ENTER, N or ESC to exit this message");
     $(window).keydown(bind(this, this.onKeyDown));
   }
@@ -556,11 +557,13 @@ Narrator = (function() {
   Narrator.prototype.fadeOut = function() {
     window.player.freeze = false;
     this.textbox.addClass('exit');
+    this.screen.removeClass('dark');
   };
 
   Narrator.prototype.fadeIn = function() {
     window.player.freeze = true;
     this.textbox.removeClass('exit');
+    this.screen.addClass('dark');
   };
 
   Narrator.prototype.narrate = function(message) {

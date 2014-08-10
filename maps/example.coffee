@@ -59,7 +59,8 @@ map.onInteract 20, (n) ->
   window.narrator.narrate "win!!!!"
 
 map.onInteract 12, (n) ->
-  window.narrator.narrate "I wonder what this does!"
+  if n is 0
+    window.narrator.narrate "I wonder what this does!"
 
   # Prevents player from clicking target again until
   # animation is done
