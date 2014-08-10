@@ -1,4 +1,4 @@
-init = (map) ->
+init = (map, terrain) ->
   SCREEN_WIDTH = window.innerWidth
   SCREEN_HEIGHT = window.innerHeight
   
@@ -9,7 +9,7 @@ init = (map) ->
   window.scene = new THREE.Scene()
   
   # Add terrain and map features
-  addTerrain window.scene
+  terrain window.scene
   map.displayTiles window.scene
   
   # Renderer

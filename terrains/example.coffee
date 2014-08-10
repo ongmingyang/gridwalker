@@ -1,4 +1,4 @@
-addTerrain = (scene) ->
+window.globalTerrains.example = (scene) ->
   
   # Fog
   scene.fog = new THREE.Fog(0x605570, 10, 200)

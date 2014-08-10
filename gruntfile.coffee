@@ -12,16 +12,17 @@ module.exports = (grunt) ->
         dest: 'build/three.js'
 
     coffee:
-      maps:
+      user:
         files:
-          'build/maps.js': [
+          'build/user.js': [
              'maps/*.coffee'
+             'terrains/*.coffee'
           ]
-      compile:
+      lib:
         options:
           bare: true
         files:
-          'build/local.js': [
+          'build/lib.js': [
             'config/*.coffee'
             'lib/*.coffee'
             'lib/**/*.coffee'
@@ -35,8 +36,8 @@ module.exports = (grunt) ->
         files:
           'index.html': [
             'build/three.js'
-            'build/local.js'
-            'build/maps.js'
+            'build/lib.js'
+            'build/user.js'
             'index.js'
           ]
 

@@ -1,2 +1,2 @@
-init(window.globalMaps.example); // loads example map
+init(window.globalMaps.example, window.globalTerrains.example); // loads example map and terrain
 render();

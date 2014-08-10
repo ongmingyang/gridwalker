@@ -12,10 +12,12 @@ window.controls = void 0;
 
 window.interactor = void 0;
 
+window.animator = void 0;
+
 
 /* VISUAL */
 
-window.animator = void 0;
+window.globalTerrains = {};
 
 
 /* MAP */
@@ -307,13 +309,13 @@ Interactor = (function() {
 
 var init, onWindowResize, render;
 
-init = function(map) {
+init = function(map, terrain) {
   var SCREEN_HEIGHT, SCREEN_WIDTH;
   SCREEN_WIDTH = window.innerWidth;
   SCREEN_HEIGHT = window.innerHeight;
   window.camera = new THREE.PerspectiveCamera(45, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 10000);
   window.scene = new THREE.Scene();
-  addTerrain(window.scene);
+  terrain(window.scene);
   map.displayTiles(window.scene);
   window.renderer = new THREE.WebGLRenderer({
     antialias: true
@@ -639,74 +641,6 @@ Player = (function() {
   return Player;
 
 })();
-
-var addTerrain;
-
-addTerrain = function(scene) {
-  var d, fragmentShader, geometry, light, material, skyBox, uniforms, vertexShader;
-  scene.fog = new THREE.Fog(0x605570, 10, 200);
-  light = new THREE.DirectionalLight(0xffdd66, 1.5);
-  light.position.set(-150, 150, 0);
-  light.castShadow = true;
-  d = 100;
-  light.shadowCameraLeft = -d;
-  light.shadowCameraRight = d;
-  light.shadowCameraTop = d;
-  light.shadowCameraBottom = -d;
-  light.shadowCameraFar = 500;
-  light.shadowMapWidth = 2048;
-  light.shadowMapHeight = 2048;
-  scene.add(light);
-  scene.add(new THREE.AmbientLight(0x404040));
-
-  /*
-  plane = new THREE.PlaneGeometry(500, 500)
-  groundTexture = THREE.ImageUtils.loadTexture("textures/grass.jpg")
-  groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping
-  groundTexture.repeat.set 25, 25
-  groundTexture.anisotropy = 16
-  groundMaterial = new THREE.MeshPhongMaterial
-    color: 0x663399
-    opacity: 0
-    specular: 0x111111
-     *map: groundTexture
-  planeMesh = new THREE.Mesh(plane, groundMaterial)
-  planeMesh.rotation.x = -Math.PI / 2
-  planeMesh.receiveShadow = true
-  scene.add planeMesh
-   */
-  geometry = new THREE.SphereGeometry(4000, 32, 12);
-  vertexShader = document.getElementById("vertexShader").textContent;
-  fragmentShader = document.getElementById("fragmentShader").textContent;
-  uniforms = {
-    topColor: {
-      type: "c",
-      value: new THREE.Color(0x0077ff)
-    },
-    bottomColor: {
-      type: "c",
-      value: scene.fog.color
-    },
-    offset: {
-      type: "f",
-      value: 0
-    },
-    exponent: {
-      type: "f",
-      value: 0.4
-    }
-  };
-  uniforms.topColor.value = new THREE.Color(0x000000);
-  material = new THREE.ShaderMaterial({
-    vertexShader: vertexShader,
-    fragmentShader: fragmentShader,
-    uniforms: uniforms,
-    side: THREE.BackSide,
-    depthWrite: false
-  });
-  skyBox = new THREE.Mesh(geometry, material);
-  return scene.add(skyBox);
-};
 
 var Tile;
 

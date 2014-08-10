@@ -5,9 +5,10 @@ window.renderer = undefined
 window.player = undefined
 window.controls = undefined
 window.interactor = undefined
+window.animator = undefined
 
 ### VISUAL ###
-window.animator = undefined
+window.globalTerrains = {}
 
 ### MAP ###
 window.globalMeshes = {}
