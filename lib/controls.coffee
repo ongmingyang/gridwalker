@@ -106,6 +106,9 @@ class Controls
 
   # Loop called at render time
   update: ->
+    @player.updateFacing()
+    cameraPosition = @player.cameraPosition()
+    facingTarget = @player.facingTarget()
 
     # Shift+mouse view rotation
     if @dragging
@@ -118,9 +121,11 @@ class Controls
       @oldTarget.applyAxisAngle u.normalize(), @mouseY
 
     if @currentSteps <= 0
-      # For animating tiles TODO: make efficient?
-      @oldPosition.copy @player.cameraPosition()
-      @object.position.copy @oldPosition
+      # Update views if player stands on moving tile
+      unless @oldPosition.equals cameraPosition
+        @oldTarget.copy facingTarget
+        @oldPosition.copy cameraPosition
+        @object.position.copy @oldPosition
 
       @freeze = false # Reset flags
     else
@@ -129,13 +134,13 @@ class Controls
       # Look left and right
       # This block updates the target
       delta = new THREE.Vector3()
-      delta.subVectors @player.facingTarget(), @oldTarget
+      delta.subVectors facingTarget, @oldTarget
       delta.divideScalar @currentSteps
 
       # Forward and backward movement
       # This block updates the camera position
       v = new THREE.Vector3()
-      v.subVectors @player.cameraPosition(), @oldPosition
+      v.subVectors cameraPosition, @oldPosition
       v.divideScalar @currentSteps
 
       @oldPosition.add v

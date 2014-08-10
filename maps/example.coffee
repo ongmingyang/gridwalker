@@ -32,7 +32,7 @@ map.setTile 19, window.globalMeshes.tile1
 map.setTile 20, window.globalMeshes.cube0
 
 # Need to declare animating tiles first
-map.declareAnimating [6, 11, 19]
+map.declareAnimating [6, 14, 19]
 
 map.link 0, 1, "north"
 map.link 0, 3, "south"
@@ -119,10 +119,16 @@ map.onInteract 12, (n) ->
           controls.done()
 
 map.makeAnimation
-  description: "Tile moves up and down"
-  vertex: 11
+  description: "Tile moves up and down and disconnects player at some points"
+  vertex: 14
   animate: (vertex, t) ->
-    vertex.y = 2 + Math.sin(t % 62.83)
+    vertex.y = 4 + 5 * Math.sin(t % 62.83)
+    if vertex.y <= 0
+      map.link 13, 14, 'north'
+      map.link 14, 15, 'north'
+    else
+      map.unlink 13, 14, 'north'
+      map.unlink 14, 15, 'north'
 
 # Bind map to global object
 window.globalMaps.example = map

@@ -225,7 +225,10 @@ Controls = (function() {
   };
 
   Controls.prototype.update = function() {
-    var delta, u, v;
+    var cameraPosition, delta, facingTarget, u, v;
+    this.player.updateFacing();
+    cameraPosition = this.player.cameraPosition();
+    facingTarget = this.player.facingTarget();
     if (this.dragging) {
       u = new THREE.Vector3();
       u.subVectors(this.oldTarget, this.oldPosition);
@@ -234,16 +237,19 @@ Controls = (function() {
       this.oldTarget.applyAxisAngle(u.normalize(), this.mouseY);
     }
     if (this.currentSteps <= 0) {
-      this.oldPosition.copy(this.player.cameraPosition());
-      this.object.position.copy(this.oldPosition);
+      if (!this.oldPosition.equals(cameraPosition)) {
+        this.oldTarget.copy(facingTarget);
+        this.oldPosition.copy(cameraPosition);
+        this.object.position.copy(this.oldPosition);
+      }
       this.freeze = false;
     } else {
       this.currentSteps--;
       delta = new THREE.Vector3();
-      delta.subVectors(this.player.facingTarget(), this.oldTarget);
+      delta.subVectors(facingTarget, this.oldTarget);
       delta.divideScalar(this.currentSteps);
       v = new THREE.Vector3();
-      v.subVectors(this.player.cameraPosition(), this.oldPosition);
+      v.subVectors(cameraPosition, this.oldPosition);
       v.divideScalar(this.currentSteps);
       this.oldPosition.add(v);
       this.object.position.copy(this.oldPosition);
@@ -460,7 +466,7 @@ Map = (function() {
         type: 'recurring',
         animate: function(t) {
           args.animate(tile.position, t);
-          args.animate(tile.object.position, t);
+          tile.object.position.copy(tile.position);
           return tile.object.verticesNeedUpdate = true;
         }
       });

@@ -99,7 +99,7 @@ class Map
           args.animate tile.position, t
 
           # Move object geometry
-          args.animate tile.object.position, t
+          tile.object.position.copy tile.position
           tile.object.verticesNeedUpdate = true
 
     if args.trigger?
@@ -114,8 +114,8 @@ class Map
             triggered: controls.triggered()
             done: controls.done
 
+          # Move object geometry
           tile.object.position.copy tile.position
-
           tile.object.verticesNeedUpdate = true
       return
     return
