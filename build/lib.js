@@ -233,9 +233,6 @@ Controls = (function() {
 
   Controls.prototype.update = function() {
     var cameraPosition, delta, facingTarget, u, v;
-    if (this.player.freeze) {
-      return;
-    }
     this.player.updateFacing();
     cameraPosition = this.player.cameraPosition();
     facingTarget = this.player.facingTarget();

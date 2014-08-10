@@ -106,8 +106,6 @@ class Controls
 
   # Loop called at render time
   update: ->
-    return if @player.freeze
-
     @player.updateFacing()
     cameraPosition = @player.cameraPosition()
     facingTarget = @player.facingTarget()
