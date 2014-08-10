@@ -76,6 +76,7 @@ Animator = (function() {
 
   Animator.prototype.done = function(animation) {
     return function() {
+      window.player.update();
       return animation.type = 'completed';
     };
   };
@@ -342,7 +343,7 @@ render = function() {
   window.controls.update();
 };
 
-var Map, Tile;
+var Map;
 
 Map = (function() {
   var _opposite;
@@ -539,28 +540,6 @@ Map = (function() {
 
 })();
 
-Tile = (function() {
-  function Tile(init) {
-    if (_.isEmpty(init)) {
-      console.log("WARNING: empty tile initialised!");
-      return;
-    }
-    this.position = init.position || new THREE.Vector3();
-    this.walkable = init.walkable || false;
-    this.wall = init.wall || false;
-    this.object = init.object || null;
-    this.adjacent = {
-      north: init.north || null,
-      south: init.south || null,
-      east: init.east || null,
-      west: init.west || null
-    };
-  }
-
-  return Tile;
-
-})();
-
 
 /*
   The Player class is a representation of the player on
@@ -570,7 +549,9 @@ Tile = (function() {
 var Player;
 
 Player = (function() {
-  var turn, _playerHeight;
+  var turn, _beginFacing, _playerHeight;
+
+  _beginFacing = 'north';
 
   _playerHeight = 3;
 
@@ -601,7 +582,7 @@ Player = (function() {
     this.map = map;
     this.tile = map.startTile;
     this.position = this.tile.position;
-    this.facing = "north";
+    this.facing = _beginFacing;
     this.facingTile = this.tile.adjacent[this.facing];
   }
 
@@ -643,6 +624,16 @@ Player = (function() {
       this.position = this.tile.position;
       this.facingTile = this.tile.adjacent[this.facing];
     }
+  };
+
+
+  /*
+    Used to update the player object upon completion
+    of an event, usually terrain changing
+   */
+
+  Player.prototype.update = function() {
+    return this.facingTile = this.tile.adjacent[this.facing];
   };
 
   return Player;
@@ -716,6 +707,30 @@ addTerrain = function(scene) {
   skyBox = new THREE.Mesh(geometry, material);
   return scene.add(skyBox);
 };
+
+var Tile;
+
+Tile = (function() {
+  function Tile(init) {
+    if (_.isEmpty(init)) {
+      console.log("WARNING: empty tile initialised!");
+      return;
+    }
+    this.position = init.position || new THREE.Vector3();
+    this.walkable = init.walkable || false;
+    this.wall = init.wall || false;
+    this.object = init.object || null;
+    this.adjacent = {
+      north: init.north || null,
+      south: init.south || null,
+      east: init.east || null,
+      west: init.west || null
+    };
+  }
+
+  return Tile;
+
+})();
 
 window.globalMeshes.cube0 = {
   materials: [

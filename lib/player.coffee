@@ -73,3 +73,9 @@ class Player
       @facingTile = @tile.adjacent[@facing]
     return
 
+  ###
+    Used to update the player object upon completion
+    of an event, usually terrain changing
+  ###
+  update: ->
+    @facingTile = @tile.adjacent[@facing]

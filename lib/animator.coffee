@@ -35,6 +35,7 @@ class Animator
 
   done: (animation) ->
     ->
+      window.player.update()
       animation.type = 'completed'
 
   update: ->
