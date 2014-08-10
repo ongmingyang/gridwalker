@@ -123,14 +123,15 @@ class Map
   ###
     Helper function for interactives
   ###
-  onInteract: (index, fn, walkable) ->
+  onInteract: (index, fn) ->
     @tiles[index].interactive = true
 
     # Execute this function upon interaction
     @tiles[index].object.interaction = fn or null
 
     # By default, make interactive objects not walkable
-    @tiles[index].walkable = true or false
+    # TODO: make customisable?
+    @tiles[index].walkable = false
     return
 
   freezeInteraction: (index) ->

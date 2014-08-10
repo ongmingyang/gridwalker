@@ -56,9 +56,10 @@ map.link 18, 19, "east"
 map.link 19, 20, "north"
 
 map.onInteract 20, (n) ->
-  alert "win!"
+  window.narrator.narrate "win!!!!"
 
 map.onInteract 12, (n) ->
+  window.narrator.narrate "I wonder what this does!"
 
   # Prevents player from clicking target again until
   # animation is done

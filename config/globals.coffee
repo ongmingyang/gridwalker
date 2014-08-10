@@ -10,6 +10,10 @@ window.animator = undefined
 ### VISUAL ###
 window.globalTerrains = {}
 
+### NARRATION ###
+window.narrator = undefined
+window.globalNarrations = {}
+
 ### MAP ###
 window.globalMeshes = {}
 window.globalMaps = {}

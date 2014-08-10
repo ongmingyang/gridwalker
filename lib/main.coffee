@@ -29,6 +29,9 @@ init = (map, terrain) ->
 
   # Interact with objects
   window.interactor = new Interactor window.player
+
+  # Narrator
+  window.narrator = new Narrator
   return
 
 onWindowResize = ->

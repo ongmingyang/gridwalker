@@ -83,10 +83,11 @@
   map.link(19, 20, "north");
 
   map.onInteract(20, function(n) {
-    return alert("win!");
+    return window.narrator.narrate("win!!!!");
   });
 
   map.onInteract(12, function(n) {
+    window.narrator.narrate("I wonder what this does!");
     map.freezeInteraction(12);
     map.makeAnimation({
       description: "This slides the orange block to the left so that the player can step across to the next platform from the west path",

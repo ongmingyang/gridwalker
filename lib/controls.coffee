@@ -46,7 +46,7 @@ class Controls
     event.preventDefault()
 
     # A player's controls are frozen once he starts moving
-    return if @freeze
+    return if @freeze or @player.freeze
 
     # Toggle freeze to lock keypress
     @freeze = true
@@ -106,6 +106,8 @@ class Controls
 
   # Loop called at render time
   update: ->
+    return if @player.freeze
+
     @player.updateFacing()
     cameraPosition = @player.cameraPosition()
     facingTarget = @player.facingTarget()

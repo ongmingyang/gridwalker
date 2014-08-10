@@ -20,6 +20,13 @@ window.animator = void 0;
 window.globalTerrains = {};
 
 
+/* NARRATION */
+
+window.narrator = void 0;
+
+window.globalNarrations = {};
+
+
 /* MAP */
 
 window.globalMeshes = {};
@@ -165,7 +172,7 @@ Controls = (function() {
 
   Controls.prototype.onKeyDown = function(event) {
     event.preventDefault();
-    if (this.freeze) {
+    if (this.freeze || this.player.freeze) {
       return;
     }
     this.freeze = true;
@@ -226,6 +233,9 @@ Controls = (function() {
 
   Controls.prototype.update = function() {
     var cameraPosition, delta, facingTarget, u, v;
+    if (this.player.freeze) {
+      return;
+    }
     this.player.updateFacing();
     cameraPosition = this.player.cameraPosition();
     facingTarget = this.player.facingTarget();
@@ -336,6 +346,7 @@ init = function(map, terrain) {
   window.controls = new Controls(window.camera, window.renderer, window.player);
   window.addEventListener('resize', onWindowResize, false);
   window.interactor = new Interactor(window.player);
+  window.narrator = new Narrator;
 };
 
 onWindowResize = function() {
@@ -493,10 +504,10 @@ Map = (function() {
     Helper function for interactives
    */
 
-  Map.prototype.onInteract = function(index, fn, walkable) {
+  Map.prototype.onInteract = function(index, fn) {
     this.tiles[index].interactive = true;
     this.tiles[index].object.interaction = fn || null;
-    this.tiles[index].walkable = true || false;
+    this.tiles[index].walkable = false;
   };
 
   Map.prototype.freezeInteraction = function(index) {
@@ -508,6 +519,56 @@ Map = (function() {
   };
 
   return Map;
+
+})();
+
+
+/*
+  This class handles all narration that occurs in the game
+ */
+var Narrator;
+
+Narrator = (function() {
+  var bind;
+
+  function Narrator() {
+    this.textbox = $("<div id='narration-container'><div id='narration-textbox'></div></div>").appendTo('body');
+    this.text = this.textbox.children('div#narration-textbox');
+    this.narrate("Press ENTER, N or ESC to exit this message");
+    $(window).keydown(bind(this, this.onKeyDown));
+  }
+
+  bind = function(scope, fn) {
+    return function() {
+      fn.apply(scope, arguments);
+    };
+  };
+
+  Narrator.prototype.onKeyDown = function(event) {
+    switch (event.keyCode) {
+      case 13:
+      case 78:
+      case 27:
+        return this.fadeOut();
+    }
+  };
+
+  Narrator.prototype.fadeOut = function() {
+    window.player.freeze = false;
+    this.textbox.addClass('exit');
+  };
+
+  Narrator.prototype.fadeIn = function() {
+    window.player.freeze = true;
+    this.textbox.removeClass('exit');
+  };
+
+  Narrator.prototype.narrate = function(message) {
+    this.text.html(message);
+    this.fadeIn();
+  };
+
+  return Narrator;
 
 })();
 
@@ -568,6 +629,7 @@ Player = (function() {
     this.tile = map.startTile;
     this.position = this.tile.position;
     this.facing = _beginFacing;
+    this.freeze = false;
     this.updateFacing();
   }
 

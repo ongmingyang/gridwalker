@@ -49,6 +49,7 @@ class Player
     @tile = map.startTile
     @position = @tile.position
     @facing = _beginFacing
+    @freeze = false
     @updateFacing()
   
   # Function computes facing target of camera
