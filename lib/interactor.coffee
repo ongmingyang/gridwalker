@@ -18,6 +18,8 @@ class Interactor
   onMouseDown: (event) ->
     event.preventDefault()
 
+    return if window.player.freeze
+
     vector = new THREE.Vector3 ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1, 0.5
     @projector.unprojectVector vector, window.camera
     @objects = _.compact _.pluck _.filter(_.compact(_.values(@player.tile.adjacent)), 'interactive'), 'object'

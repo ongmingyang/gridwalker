@@ -100,6 +100,7 @@ map.onInteract 12, (n) ->
     trigger: (vertex, t, controls) ->
       if controls.triggered
         map.unlink 19, 18
+        map.unlink 19, 20
       if n % 3 is 0
         vertex.z = 2 * t
         vertex.y = 4 + t
@@ -118,6 +119,7 @@ map.onInteract 12, (n) ->
           vertex.z = 0
           vertex.y = 4
           map.link 18, 19, "east"
+          map.link 19, 20, "north"
           controls.done()
 
 map.makeAnimation
@@ -132,6 +134,17 @@ map.makeAnimation
       map.unlink 13, 14, 'north'
       map.unlink 14, 15, 'north'
 
-# Bind map to global object
-window.globalMaps.example = map
+map.setClones
+  0:
+    name: "Fooman"
+    description: "Has no distinguishing properties"
+    facing: "north"
+    vertex: 0
+  1:
+    name: "Barman"
+    description: "Works at a tavern"
+    facing: "north"
+    vertex: 8
 
+# Bind map and players to global object
+window.globalMaps.example = map

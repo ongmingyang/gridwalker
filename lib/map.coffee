@@ -16,7 +16,7 @@ class Map
         object: defaultTile or window.globalMeshes.tile0.init vector
     
     @animations = []
-    @startTile = @tiles[0]
+    @startTile = @tiles[0] # May be overwritten by first clone location
     
   # Links vertices
   link: (from, to, direction) ->
@@ -72,7 +72,23 @@ class Map
     scene.add tileMapMesh
 
   ###
-    Set animating flag on vertices
+    PLAYER STUFF:
+  ###
+  setClones: (clones) ->
+    tiles = @tiles
+    @cloneHandler =
+      current: 0
+      total: _.size clones
+    @cloneHandler.clones = _.mapValues clones, (clone) ->
+      name: clone.name
+      description: clone.description
+      facing: clone.facing
+      tile: tiles[clone.vertex]
+      alive: true
+    @startTile = @cloneHandler.clones[@cloneHandler.current].tile
+
+  ###
+    ANIMATION STUFF: Set animating flag on vertices
   ###
   declareAnimating: (indices) ->
     tiles = @tiles
@@ -121,7 +137,7 @@ class Map
     return
 
   ###
-    Helper function for interactives
+    INTERACTION STUFF: Helper function for interactives
   ###
   onInteract: (index, fn) ->
     @tiles[index].interactive = true

@@ -32,6 +32,9 @@ init = (map, terrain) ->
 
   # Narrator
   window.narrator = new Narrator
+
+  # UI
+  window.globalUI = new Interface map.cloneHandler.clones
   return
 
 onWindowResize = ->

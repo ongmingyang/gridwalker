@@ -129,6 +129,7 @@
       trigger: function(vertex, t, controls) {
         if (controls.triggered) {
           map.unlink(19, 18);
+          map.unlink(19, 20);
         }
         if (n % 3 === 0) {
           vertex.z = 2 * t;
@@ -152,6 +153,7 @@
             vertex.z = 0;
             vertex.y = 4;
             map.link(18, 19, "east");
+            map.link(19, 20, "north");
             return controls.done();
           }
         }
@@ -171,6 +173,21 @@
         map.unlink(13, 14, 'north');
         return map.unlink(14, 15, 'north');
       }
+    }
+  });
+
+  map.setClones({
+    0: {
+      name: "Fooman",
+      description: "Has no distinguishing properties",
+      facing: "north",
+      vertex: 0
+    },
+    1: {
+      name: "Barman",
+      description: "Works at a tavern",
+      facing: "north",
+      vertex: 8
     }
   });
 

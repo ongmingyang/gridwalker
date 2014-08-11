@@ -9,6 +9,7 @@ window.animator = undefined
 
 ### VISUAL ###
 window.globalTerrains = {}
+window.globalUI = undefined
 
 ### NARRATION ###
 window.narrator = undefined

@@ -46,12 +46,24 @@ class Player
 
   constructor: (map) ->
     @map = map
-    @tile = map.startTile
+    @tile = @map.startTile
     @position = @tile.position
     @facing = _beginFacing
     @freeze = false
     @updateFacing()
+    $( window ).keydown bind(this, @onKeyDown)
+
+  # Class function binds key event listeners to window
+  bind = (scope, fn) ->
+    return ->
+      fn.apply scope, arguments
+      return
   
+  onKeyDown: (event) ->
+    switch event.keyCode
+      when 9, 70 # TAB, F (for friend)
+        @toggleClone()
+
   # Function computes facing target of camera
   facingTarget: ->
     v = @facingTilePosition.clone()
@@ -82,9 +94,12 @@ class Player
       @updateFacing()
     return
 
-  teleport: (index) ->
-    if map.tiles[index].walkable
-      @tile = map.tiles[index]
+  # Accepts either a tile object or a tile id
+  teleport: (tile) ->
+    unless tile instanceof Tile
+      tile = @map.tiles[tile]
+    if tile.walkable
+      @tile = tile
       @position = @tile.position
       @updateFacing()
     return
@@ -96,3 +111,27 @@ class Player
   updateFacing: ->
     @facingTile = @tile.adjacent[@facing]
     @facingTilePosition = if _.isNull @facingTile then @tile.default @facing else @facingTile.position
+    
+  ###
+    Function swaps player's view with next clone
+    specified by the cloneHandler in the map object
+  ###
+  toggleClone: ->
+    id = @map.cloneHandler.current
+
+    # Save the state of current clone
+    clone = @map.cloneHandler.clones[id]
+    clone.tile = @tile
+    clone.facing = @facing
+
+    # Swap to next clone
+    id = (id+1) % @map.cloneHandler.total
+    clone = @map.cloneHandler.clones[id]
+    @facing = clone.facing
+    @teleport clone.tile
+
+    # Update current clone id and inform player
+    @map.cloneHandler.current = id
+    window.globalUI.update id
+    window.narrator.narrate "You've switched to clone #{clone.name}."
+

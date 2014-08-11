@@ -19,6 +19,8 @@ window.animator = void 0;
 
 window.globalTerrains = {};
 
+window.globalUI = void 0;
+
 
 /* NARRATION */
 
@@ -298,6 +300,9 @@ Interactor = (function() {
   Interactor.prototype.onMouseDown = function(event) {
     var intersects, target, vector;
     event.preventDefault();
+    if (window.player.freeze) {
+      return;
+    }
     vector = new THREE.Vector3((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
     this.projector.unprojectVector(vector, window.camera);
     this.objects = _.compact(_.pluck(_.filter(_.compact(_.values(this.player.tile.adjacent)), 'interactive'), 'object'));
@@ -344,6 +349,7 @@ init = function(map, terrain) {
   window.addEventListener('resize', onWindowResize, false);
   window.interactor = new Interactor(window.player);
   window.narrator = new Narrator;
+  window.globalUI = new Interface(map.cloneHandler.clones);
 };
 
 onWindowResize = function() {
@@ -446,7 +452,31 @@ Map = (function() {
 
 
   /*
-    Set animating flag on vertices
+    PLAYER STUFF:
+   */
+
+  Map.prototype.setClones = function(clones) {
+    var tiles;
+    tiles = this.tiles;
+    this.cloneHandler = {
+      current: 0,
+      total: _.size(clones)
+    };
+    this.cloneHandler.clones = _.mapValues(clones, function(clone) {
+      return {
+        name: clone.name,
+        description: clone.description,
+        facing: clone.facing,
+        tile: tiles[clone.vertex],
+        alive: true
+      };
+    });
+    return this.startTile = this.cloneHandler.clones[this.cloneHandler.current].tile;
+  };
+
+
+  /*
+    ANIMATION STUFF: Set animating flag on vertices
    */
 
   Map.prototype.declareAnimating = function(indices) {
@@ -498,7 +528,7 @@ Map = (function() {
 
 
   /*
-    Helper function for interactives
+    INTERACTION STUFF: Helper function for interactives
    */
 
   Map.prototype.onInteract = function(index, fn) {
@@ -595,7 +625,7 @@ Narrator = (function() {
 var Player;
 
 Player = (function() {
-  var turn, _beginFacing, _playerHeight;
+  var bind, turn, _beginFacing, _playerHeight;
 
   _beginFacing = 'north';
 
@@ -626,12 +656,27 @@ Player = (function() {
 
   function Player(map) {
     this.map = map;
-    this.tile = map.startTile;
+    this.tile = this.map.startTile;
     this.position = this.tile.position;
     this.facing = _beginFacing;
     this.freeze = false;
     this.updateFacing();
+    $(window).keydown(bind(this, this.onKeyDown));
   }
+
+  bind = function(scope, fn) {
+    return function() {
+      fn.apply(scope, arguments);
+    };
+  };
+
+  Player.prototype.onKeyDown = function(event) {
+    switch (event.keyCode) {
+      case 9:
+      case 70:
+        return this.toggleClone();
+    }
+  };
 
   Player.prototype.facingTarget = function() {
     var v;
@@ -668,9 +713,12 @@ Player = (function() {
     }
   };
 
-  Player.prototype.teleport = function(index) {
-    if (map.tiles[index].walkable) {
-      this.tile = map.tiles[index];
+  Player.prototype.teleport = function(tile) {
+    if (!(tile instanceof Tile)) {
+      tile = this.map.tiles[tile];
+    }
+    if (tile.walkable) {
+      this.tile = tile;
       this.position = this.tile.position;
       this.updateFacing();
     }
@@ -685,6 +733,27 @@ Player = (function() {
   Player.prototype.updateFacing = function() {
     this.facingTile = this.tile.adjacent[this.facing];
     return this.facingTilePosition = _.isNull(this.facingTile) ? this.tile["default"](this.facing) : this.facingTile.position;
+  };
+
+
+  /*
+    Function swaps player's view with next clone
+    specified by the cloneHandler in the map object
+   */
+
+  Player.prototype.toggleClone = function() {
+    var clone, id;
+    id = this.map.cloneHandler.current;
+    clone = this.map.cloneHandler.clones[id];
+    clone.tile = this.tile;
+    clone.facing = this.facing;
+    id = (id + 1) % this.map.cloneHandler.total;
+    clone = this.map.cloneHandler.clones[id];
+    this.facing = clone.facing;
+    this.teleport(clone.tile);
+    this.map.cloneHandler.current = id;
+    window.globalUI.update(id);
+    return window.narrator.narrate("You've switched to clone " + clone.name + ".");
   };
 
   return Player;
@@ -739,6 +808,40 @@ Tile = (function() {
   };
 
   return Tile;
+
+})();
+
+
+/*
+  The UI class
+ */
+var Interface;
+
+Interface = (function() {
+  function Interface(clones) {
+    var dom, footer;
+    this.footer = $("<div id='clones'></div>").appendTo('body');
+    this.clones = {
+      reference: clones,
+      dom: {}
+    };
+    dom = this.clones.dom;
+    footer = this.footer;
+    _.forOwn(clones, function(clone, key) {
+      dom[key] = $("<div id='clone-" + key + "' class='clone-icon'>" + clone.name + "</div>");
+      dom[key].appendTo(footer);
+    });
+    this.update(0);
+  }
+
+  Interface.prototype.update = function(id) {
+    _.forOwn(this.clones.dom, function(clone) {
+      return clone.removeClass("clone-highlighted");
+    });
+    return this.clones.dom[id].addClass("clone-highlighted");
+  };
+
+  return Interface;
 
 })();
 
