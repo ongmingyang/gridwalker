@@ -51,18 +51,6 @@ class Player
     @facing = _beginFacing
     @freeze = false
     @updateFacing()
-    $( window ).keydown bind(this, @onKeyDown)
-
-  # Class function binds key event listeners to window
-  bind = (scope, fn) ->
-    return ->
-      fn.apply scope, arguments
-      return
-  
-  onKeyDown: (event) ->
-    switch event.keyCode
-      when 9, 70 # TAB, F (for friend)
-        @toggleClone()
 
   # Function computes facing target of camera
   facingTarget: ->

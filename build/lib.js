@@ -212,6 +212,11 @@ Controls = (function() {
         return this.currentSteps = _walkSteps;
       case 16:
         return this.dragging = true;
+      case 72:
+        return window.globalUI.help();
+      case 9:
+      case 70:
+        return window.player.toggleClone();
     }
   };
 
@@ -577,6 +582,7 @@ Narrator = (function() {
       case 13:
       case 78:
       case 27:
+      case 32:
         return this.fadeOut();
     }
   };
@@ -625,7 +631,7 @@ Narrator = (function() {
 var Player;
 
 Player = (function() {
-  var bind, turn, _beginFacing, _playerHeight;
+  var turn, _beginFacing, _playerHeight;
 
   _beginFacing = 'north';
 
@@ -661,22 +667,7 @@ Player = (function() {
     this.facing = _beginFacing;
     this.freeze = false;
     this.updateFacing();
-    $(window).keydown(bind(this, this.onKeyDown));
   }
-
-  bind = function(scope, fn) {
-    return function() {
-      fn.apply(scope, arguments);
-    };
-  };
-
-  Player.prototype.onKeyDown = function(event) {
-    switch (event.keyCode) {
-      case 9:
-      case 70:
-        return this.toggleClone();
-    }
-  };
 
   Player.prototype.facingTarget = function() {
     var v;
@@ -839,6 +830,10 @@ Interface = (function() {
       return clone.removeClass("clone-highlighted");
     });
     return this.clones.dom[id].addClass("clone-highlighted");
+  };
+
+  Interface.prototype.help = function() {
+    return window.narrator.narrate("WASD move, QE strafe, H help, TAB switch player");
   };
 
   return Interface;

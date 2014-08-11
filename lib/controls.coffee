@@ -88,6 +88,12 @@ class Controls
       when 16 # SHIFT
         @dragging = true
 
+      when 72 # H
+        window.globalUI.help()
+
+      when 9, 70 # TAB, F
+        window.player.toggleClone()
+
   # Capture key up event
   onKeyUp: (event) ->
     event.preventDefault()

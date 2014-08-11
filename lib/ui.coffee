@@ -22,3 +22,5 @@ class Interface
       clone.removeClass "clone-highlighted"
     @clones.dom[id].addClass "clone-highlighted"
     
+  help: ->
+    window.narrator.narrate "WASD move, QE strafe, H help, TAB switch player"

@@ -10,6 +10,8 @@ class Narrator
     $( window ).keydown bind(this, @onKeyDown)
 
   # Class function binds key event listeners to window
+  # NOTE: we need to bind this separately from controls because
+  # controls are frozen when player.freeze is true
   bind = (scope, fn) ->
     return ->
       fn.apply scope, arguments
@@ -17,7 +19,7 @@ class Narrator
 
   onKeyDown: (event) ->
     switch event.keyCode
-      when 13, 78, 27 # ENTER, N, ESC
+      when 13, 78, 27, 32 # ENTER, N, ESC
         @fadeOut()
 
   fadeOut: ->
