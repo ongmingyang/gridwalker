@@ -281,7 +281,7 @@ Controls = (function() {
 
 
 /*
-  The Interactor class takes care of all mouse event interactions with
+  The Interactor class takes care of all interactions with
   surrounding objects
  */
 var Interactor;
@@ -321,6 +321,11 @@ Interactor = (function() {
       this.interact(target);
     }
   };
+
+
+  /*
+    Called when 1) player walks on tile and 2) when a player clicks on an object
+   */
 
   Interactor.prototype.interact = function(target) {
     if (target.freeze) {
@@ -784,7 +789,6 @@ Tile = (function() {
       east: init.east || null,
       west: init.west || null
     };
-    this.trigger = null;
   }
 
 
