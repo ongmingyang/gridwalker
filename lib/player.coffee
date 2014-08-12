@@ -79,6 +79,11 @@ class Player
     if @facingTile.walkable
       @tile = @facingTile
       @position = @tile.position
+
+      if @tile.interactive is 'trigger'
+        # Invoke interaction callback if tile is triggered
+        window.interactor.interact @tile.object
+
       @updateFacing()
     return
 

@@ -55,10 +55,13 @@ map.link 17, 18, "north"
 map.link 18, 19, "east"
 map.link 19, 20, "north"
 
-map.onInteract 20, (n) ->
+map.onInteract 20, 'click', (n) ->
   window.narrator.narrate "win!!!!"
 
-map.onInteract 12, (n) ->
+map.onInteract 3, 'trigger', (n) ->
+  window.narrator.narrate "There's nothing back this way"
+
+map.onInteract 12, 'click', (n) ->
   if n is 0
     window.narrator.narrate "I wonder what this does!"
 

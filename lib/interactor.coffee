@@ -22,19 +22,26 @@ class Interactor
 
     vector = new THREE.Vector3 ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1, 0.5
     @projector.unprojectVector vector, window.camera
-    @objects = _.compact _.pluck _.filter(_.compact(_.values(@player.tile.adjacent)), 'interactive'), 'object'
+    @objects = _.compact _.pluck _.filter(_.compact(_.values(@player.tile.adjacent)), {interactive: 'click'}), 'object'
     vector.sub( window.camera.position ).normalize()
     @raycaster.set window.camera.position, vector
     intersects = @raycaster.intersectObjects @objects
 
     unless _.isEmpty intersects
       target = intersects[0].object
+      @interact target
 
-      # Disallow interaction if the target is frozen
-      return if target.freeze
+    return
 
-      target.interactionCounter = 0 if _.isUndefined target.interactionCounter
-      target.interaction target.interactionCounter++
+  ###
+    Called when 1) player walks on tile and 2) when a player clicks on an object
+  ###
+  interact: (target) ->
 
+    # Disallow interaction if the target is frozen
+    return if target.freeze
+
+    target.interactionCounter = 0 if _.isUndefined target.interactionCounter
+    target.interaction target.interactionCounter++
     return
 

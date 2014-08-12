@@ -281,7 +281,7 @@ Controls = (function() {
 
 
 /*
-  The Interactor class takes care of all interactions with
+  The Interactor class takes care of all mouse event interactions with
   surrounding objects
  */
 var Interactor;
@@ -310,20 +310,26 @@ Interactor = (function() {
     }
     vector = new THREE.Vector3((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
     this.projector.unprojectVector(vector, window.camera);
-    this.objects = _.compact(_.pluck(_.filter(_.compact(_.values(this.player.tile.adjacent)), 'interactive'), 'object'));
+    this.objects = _.compact(_.pluck(_.filter(_.compact(_.values(this.player.tile.adjacent)), {
+      interactive: 'click'
+    }), 'object'));
     vector.sub(window.camera.position).normalize();
     this.raycaster.set(window.camera.position, vector);
     intersects = this.raycaster.intersectObjects(this.objects);
     if (!_.isEmpty(intersects)) {
       target = intersects[0].object;
-      if (target.freeze) {
-        return;
-      }
-      if (_.isUndefined(target.interactionCounter)) {
-        target.interactionCounter = 0;
-      }
-      target.interaction(target.interactionCounter++);
+      this.interact(target);
     }
+  };
+
+  Interactor.prototype.interact = function(target) {
+    if (target.freeze) {
+      return;
+    }
+    if (_.isUndefined(target.interactionCounter)) {
+      target.interactionCounter = 0;
+    }
+    target.interaction(target.interactionCounter++);
   };
 
   return Interactor;
@@ -388,7 +394,6 @@ Map = (function() {
         position: vector,
         walkable: true,
         animating: false,
-        interactive: false,
         object: defaultTile || window.globalMeshes.tile0.init(vector)
       });
     });
@@ -433,7 +438,7 @@ Map = (function() {
     material = new THREE.MeshFaceMaterial(_.flatten(_.pluck(window.globalMeshes, "materials")));
     _.forOwn(this.tiles, function(tile, key) {
       if (tile.object) {
-        if (tile.animating || tile.interactive) {
+        if (tile.animating || (tile.interactive != null)) {
           return scene.add(tile.object);
         } else {
           _.forEach(tile.object.geometry.faces, function(face) {
@@ -534,12 +539,20 @@ Map = (function() {
 
   /*
     INTERACTION STUFF: Helper function for interactives
+    @param index: the index of the tile that the user
+                  interacts with
+    @param fn: the callback function
+    @param type:
+        'click': triggers callback on click
+        'trigger': triggers callback on stepping on tile
    */
 
-  Map.prototype.onInteract = function(index, fn) {
-    this.tiles[index].interactive = true;
+  Map.prototype.onInteract = function(index, type, fn) {
+    this.tiles[index].interactive = type;
     this.tiles[index].object.interaction = fn || null;
-    this.tiles[index].walkable = false;
+    if (type === 'click') {
+      this.tiles[index].walkable = false;
+    }
   };
 
   Map.prototype.freezeInteraction = function(index) {
@@ -700,6 +713,9 @@ Player = (function() {
     if (this.facingTile.walkable) {
       this.tile = this.facingTile;
       this.position = this.tile.position;
+      if (this.tile.interactive === 'trigger') {
+        window.interactor.interact(this.tile.object);
+      }
       this.updateFacing();
     }
   };
@@ -768,6 +784,7 @@ Tile = (function() {
       east: init.east || null,
       west: init.west || null
     };
+    this.trigger = null;
   }
 
 

@@ -12,7 +12,6 @@ class Map
         position: vector
         walkable: true
         animating: false
-        interactive: false
         object: defaultTile or window.globalMeshes.tile0.init vector
     
     @animations = []
@@ -50,7 +49,7 @@ class Map
       if tile.object
 
         # Add animating or interactive tile as individual geometry for performance
-        if tile.animating or tile.interactive
+        if tile.animating or tile.interactive?
           scene.add tile.object
 
         else
@@ -138,16 +137,24 @@ class Map
 
   ###
     INTERACTION STUFF: Helper function for interactives
+    @param index: the index of the tile that the user
+                  interacts with
+    @param fn: the callback function
+    @param type:
+        'click': triggers callback on click
+        'trigger': triggers callback on stepping on tile
   ###
-  onInteract: (index, fn) ->
-    @tiles[index].interactive = true
+  onInteract: (index, type, fn) ->
+    @tiles[index].interactive = type
 
     # Execute this function upon interaction
     @tiles[index].object.interaction = fn or null
 
-    # By default, make interactive objects not walkable
-    # TODO: make customisable?
-    @tiles[index].walkable = false
+    if type is 'click'
+      # By default, make interactive objects not walkable
+      # TODO: make customisable?
+      @tiles[index].walkable = false
+
     return
 
   freezeInteraction: (index) ->
@@ -155,4 +162,3 @@ class Map
 
   unfreezeInteraction: (index) ->
     @tiles[index].object.freeze = false
-

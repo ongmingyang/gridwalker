@@ -82,11 +82,15 @@
 
   map.link(19, 20, "north");
 
-  map.onInteract(20, function(n) {
+  map.onInteract(20, 'click', function(n) {
     return window.narrator.narrate("win!!!!");
   });
 
-  map.onInteract(12, function(n) {
+  map.onInteract(3, 'trigger', function(n) {
+    return window.narrator.narrate("There's nothing back this way");
+  });
+
+  map.onInteract(12, 'click', function(n) {
     if (n === 0) {
       window.narrator.narrate("I wonder what this does!");
     }

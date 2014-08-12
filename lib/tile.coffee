@@ -13,6 +13,9 @@ class Tile
       east: init.east or null
       west: init.west or null
 
+    # Walk-on trigger
+    @trigger = null
+
   ###
     Function gives default direction player
     faces when standing on tile
