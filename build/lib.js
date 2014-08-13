@@ -474,8 +474,7 @@ Map = (function() {
     var tiles;
     tiles = this.tiles;
     this.cloneHandler = {
-      current: 0,
-      total: _.size(clones)
+      current: 0
     };
     this.cloneHandler.clones = _.mapValues(clones, function(clone) {
       return {
@@ -486,7 +485,7 @@ Map = (function() {
         alive: true
       };
     });
-    return this.startTile = this.cloneHandler.clones[this.cloneHandler.current].tile;
+    this.startTile = this.cloneHandler.clones[this.cloneHandler.current].tile;
   };
 
 
@@ -520,7 +519,9 @@ Map = (function() {
         animate: function(t) {
           args.animate(tile.position, t);
           tile.object.position.copy(tile.position);
-          return tile.object.verticesNeedUpdate = true;
+          return _.forOwn(tile.attachments, function(attachment, key) {
+            return attachment.position.copy(tile.position);
+          });
         }
       });
     }
@@ -534,10 +535,11 @@ Map = (function() {
             done: controls.done
           });
           tile.object.position.copy(tile.position);
-          return tile.object.verticesNeedUpdate = true;
+          return _.forOwn(tile.attachments, function(attachment, key) {
+            return attachment.position.copy(tile.position);
+          });
         }
       });
-      return;
     }
   };
 
@@ -679,12 +681,21 @@ Player = (function() {
   };
 
   function Player(map) {
+    var playerToken;
+    this.playerToken = playerToken = window.globalMeshes.cube1;
     this.map = map;
     this.tile = this.map.startTile;
     this.position = this.tile.position;
     this.facing = _beginFacing;
     this.freeze = false;
     this.updateFacing();
+    _.forOwn(this.map.cloneHandler.clones, function(clone, key) {
+      if (parseInt(key) === map.cloneHandler.current) {
+        return;
+      }
+      return clone.tile.attach(playerToken, parseInt(key));
+    });
+    return;
   }
 
   Player.prototype.facingTarget = function() {
@@ -759,10 +770,12 @@ Player = (function() {
     clone = this.map.cloneHandler.clones[id];
     clone.tile = this.tile;
     clone.facing = this.facing;
-    id = (id + 1) % this.map.cloneHandler.total;
+    this.tile.attach(this.playerToken, id);
+    id = (id + 1) % _.size(this.map.cloneHandler.clones);
     clone = this.map.cloneHandler.clones[id];
     this.facing = clone.facing;
     this.teleport(clone.tile);
+    this.tile.detach(this.playerToken, id);
     this.map.cloneHandler.current = id;
     window.globalUI.update(id);
     return window.narrator.narrate("You've switched to clone " + clone.name + ".");
@@ -772,6 +785,17 @@ Player = (function() {
 
 })();
 
+
+/*
+  Tile class that is initialised for every tile in the map
+  @param position: The location of the tile on the map
+  @param walkable: Can the player walk on tile?
+  @param object: The mesh associated with the tile
+  @param adjacent: Adjacent tile objects
+  @param attachments: Objects that are attached to the tile
+          e.g. clones and pickable objects
+          Each clone and/or pickable object has a unique id
+ */
 var Tile;
 
 Tile = (function() {
@@ -783,6 +807,7 @@ Tile = (function() {
     this.position = init.position || new THREE.Vector3();
     this.walkable = init.walkable || false;
     this.object = init.object || null;
+    this.attachments = {};
     this.adjacent = {
       north: init.north || null,
       south: init.south || null,
@@ -795,6 +820,7 @@ Tile = (function() {
   /*
     Function gives default direction player
     faces when standing on tile
+    TODO: compute default direction given different bearing
    */
 
   Tile.prototype["default"] = function(direction, bearing) {
@@ -817,6 +843,16 @@ Tile = (function() {
       }
       return position;
     }
+  };
+
+  Tile.prototype.attach = function(mesh, id) {
+    this.attachments[id] = mesh.init(this.position);
+    return window.scene.add(this.attachments[id]);
+  };
+
+  Tile.prototype.detach = function(mesh, id) {
+    window.scene.remove(this.attachments[id]);
+    return delete this.attachments[id];
   };
 
   return Tile;
@@ -866,6 +902,28 @@ window.globalMeshes.cube0 = {
     new THREE.MeshPhongMaterial({
       id: 3,
       color: 0xcceeff
+    })
+  ],
+  init: function(position) {
+    var cube, geometry;
+    geometry = new THREE.BoxGeometry(2, 2, 2);
+    _.forEach(geometry.vertices, function(vertex) {
+      return vertex.y += 3;
+    });
+    _.forEach(geometry.faces, function(face) {
+      return face.materialIndex = 3;
+    });
+    cube = new THREE.Mesh(geometry, this.materials[0]);
+    cube.position.copy(position);
+    return cube;
+  }
+};
+
+window.globalMeshes.cube1 = {
+  materials: [
+    new THREE.MeshPhongMaterial({
+      id: 4,
+      color: 0xff0000
     })
   ],
   init: function(position) {

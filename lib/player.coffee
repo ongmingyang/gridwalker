@@ -45,12 +45,19 @@ class Player
       back: "east"
 
   constructor: (map) ->
+    @playerToken = playerToken = window.globalMeshes.cube1 #TODO: change
     @map = map
     @tile = @map.startTile
     @position = @tile.position
     @facing = _beginFacing
     @freeze = false
     @updateFacing()
+
+    # Add player clone tokens to map
+    _.forOwn @map.cloneHandler.clones, (clone, key) ->
+      return if parseInt(key) is map.cloneHandler.current
+      clone.tile.attach playerToken, parseInt(key)
+    return
 
   # Function computes facing target of camera
   facingTarget: ->
@@ -117,11 +124,17 @@ class Player
     clone.tile = @tile
     clone.facing = @facing
 
+    # Attaches current clone body to map
+    @tile.attach @playerToken, id
+
     # Swap to next clone
-    id = (id+1) % @map.cloneHandler.total
+    id = (id+1) % _.size( @map.cloneHandler.clones )
     clone = @map.cloneHandler.clones[id]
     @facing = clone.facing
     @teleport clone.tile
+
+    # Detaches new clone body from map
+    @tile.detach @playerToken, id
 
     # Update current clone id and inform player
     @map.cloneHandler.current = id

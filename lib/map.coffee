@@ -77,7 +77,6 @@ class Map
     tiles = @tiles
     @cloneHandler =
       current: 0
-      total: _.size clones
     @cloneHandler.clones = _.mapValues clones, (clone) ->
       name: clone.name
       description: clone.description
@@ -85,6 +84,7 @@ class Map
       tile: tiles[clone.vertex]
       alive: true
     @startTile = @cloneHandler.clones[@cloneHandler.current].tile
+    return
 
   ###
     ANIMATION STUFF: Set animating flag on vertices
@@ -115,7 +115,11 @@ class Map
 
           # Move object geometry
           tile.object.position.copy tile.position
-          tile.object.verticesNeedUpdate = true
+          #tile.object.verticesNeedUpdate = true
+
+          # Move all objects attached to tile
+          _.forOwn tile.attachments, (attachment, key) ->
+            attachment.position.copy tile.position
 
     if args.trigger?
       @animations.push
@@ -131,8 +135,12 @@ class Map
 
           # Move object geometry
           tile.object.position.copy tile.position
-          tile.object.verticesNeedUpdate = true
-      return
+          #tile.object.verticesNeedUpdate = true
+
+          # Move all objects attached to tile
+          _.forOwn tile.attachments, (attachment, key) ->
+            attachment.position.copy tile.position
+
     return
 
   ###
