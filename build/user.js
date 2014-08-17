@@ -174,7 +174,7 @@
 
   map.makeAnimation(14, {
     description: "Tile moves up and down and disconnects player at some points",
-    animate: function(vertex, t) {
+    loop: function(vertex, t) {
       vertex.y = 4 + 5 * Math.sin(t % 62.83);
       if (vertex.y <= 0) {
         map.link(13, 14, 'north');

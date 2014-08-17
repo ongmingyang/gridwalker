@@ -100,7 +100,7 @@ class Map
     @param index: The vertex that the animation is applied to
     @params args
       @param description: A short description of the animation
-      @param animate: The recurring animation that is invoked
+      @param loop: The recurring animation that is invoked
       @param trigger: The transient animation that is invoked
   ###
   makeAnimation: (index, args) ->
@@ -111,13 +111,13 @@ class Map
     tile.animating = true
 
     # Invoked as a recurring animation
-    if args.animate?
+    if args.loop?
       @animations.push
         description: args.description or null
         type: 'recurring'
         animate: (t) ->
           # Move reference point in @tiles
-          args.animate tile.position, t
+          args.loop tile.position, t
 
           # Move object geometry
           tile.object.position.copy tile.position

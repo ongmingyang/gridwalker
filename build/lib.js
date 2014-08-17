@@ -508,7 +508,7 @@ Map = (function() {
     @param index: The vertex that the animation is applied to
     @params args
       @param description: A short description of the animation
-      @param animate: The recurring animation that is invoked
+      @param loop: The recurring animation that is invoked
       @param trigger: The transient animation that is invoked
    */
 
@@ -517,12 +517,12 @@ Map = (function() {
     tiles = this.tiles;
     tile = tiles[index];
     tile.animating = true;
-    if (args.animate != null) {
+    if (args.loop != null) {
       this.animations.push({
         description: args.description || null,
         type: 'recurring',
         animate: function(t) {
-          args.animate(tile.position, t);
+          args.loop(tile.position, t);
           tile.object.position.copy(tile.position);
           return _.forOwn(tile.attachments, function(attachment, key) {
             return attachment.position.copy(tile.position);
