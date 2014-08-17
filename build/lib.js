@@ -587,7 +587,7 @@ Narrator = (function() {
     this.textbox = $("<div id='narration-container'><div id='narration-textbox'></div></div>").appendTo('body');
     this.text = this.textbox.children('div#narration-textbox');
     this.screen = $(window.renderer.domElement);
-    this.narrate("Press ENTER, N or ESC to exit this message");
+    this.narrate("Press ENTER, N, SPACE or ESC to exit this message");
     $(window).keydown(bind(this, this.onKeyDown));
   }
 
@@ -693,7 +693,8 @@ Player = (function() {
       if (parseInt(key) === map.cloneHandler.current) {
         return;
       }
-      return clone.tile.attach(playerToken, parseInt(key));
+      clone.tile.attach(playerToken, parseInt(key));
+      return clone.tile.walkable = false;
     });
     return;
   }
@@ -736,11 +737,19 @@ Player = (function() {
     }
   };
 
-  Player.prototype.teleport = function(tile) {
+  Player.prototype.teleport = function(tile, options) {
+    if (options == null) {
+      options = null;
+    }
+    if (_.isNull(options)) {
+      options = {
+        blocking: true
+      };
+    }
     if (!(tile instanceof Tile)) {
       tile = this.map.tiles[tile];
     }
-    if (tile.walkable) {
+    if (tile.walkable || !options.blocking) {
       this.tile = tile;
       this.position = this.tile.position;
       this.updateFacing();
@@ -771,11 +780,15 @@ Player = (function() {
     clone.tile = this.tile;
     clone.facing = this.facing;
     this.tile.attach(this.playerToken, id);
+    this.tile.walkable = false;
     id = (id + 1) % _.size(this.map.cloneHandler.clones);
     clone = this.map.cloneHandler.clones[id];
     this.facing = clone.facing;
-    this.teleport(clone.tile);
+    this.teleport(clone.tile, {
+      blocking: false
+    });
     this.tile.detach(this.playerToken, id);
+    this.tile.walkable = true;
     this.map.cloneHandler.current = id;
     window.globalUI.update(id);
     return window.narrator.narrate("You've switched to clone " + clone.name + ".");

@@ -57,6 +57,7 @@ class Player
     _.forOwn @map.cloneHandler.clones, (clone, key) ->
       return if parseInt(key) is map.cloneHandler.current
       clone.tile.attach playerToken, parseInt(key)
+      clone.tile.walkable = false
     return
 
   # Function computes facing target of camera
@@ -95,10 +96,14 @@ class Player
     return
 
   # Accepts either a tile object or a tile id
-  teleport: (tile) ->
+  teleport: (tile, options = null) ->
+    if _.isNull options
+      # default options
+      options =
+        blocking: true # cannot teleport to tile that is not walkable
     unless tile instanceof Tile
       tile = @map.tiles[tile]
-    if tile.walkable
+    if tile.walkable or not options.blocking
       @tile = tile
       @position = @tile.position
       @updateFacing()
@@ -126,15 +131,18 @@ class Player
 
     # Attaches current clone body to map
     @tile.attach @playerToken, id
+    @tile.walkable = false
 
     # Swap to next clone
     id = (id+1) % _.size( @map.cloneHandler.clones )
     clone = @map.cloneHandler.clones[id]
     @facing = clone.facing
-    @teleport clone.tile
+    @teleport clone.tile,
+      blocking: false
 
     # Detaches new clone body from map
     @tile.detach @playerToken, id
+    @tile.walkable = true
 
     # Update current clone id and inform player
     @map.cloneHandler.current = id

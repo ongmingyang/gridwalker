@@ -6,7 +6,7 @@ class Narrator
     @textbox = $( "<div id='narration-container'><div id='narration-textbox'></div></div>" ).appendTo 'body'
     @text = @textbox.children 'div#narration-textbox'
     @screen = $( window.renderer.domElement )
-    @narrate "Press ENTER, N or ESC to exit this message"
+    @narrate "Press ENTER, N, SPACE or ESC to exit this message"
     $( window ).keydown bind(this, @onKeyDown)
 
   # Class function binds key event listeners to window
