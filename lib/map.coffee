@@ -97,14 +97,20 @@ class Map
   ###
     Helper function that passes animations into an instance array
     that will later be iterated through by the animator object
+    @param index: The vertex that the animation is applied to
+    @params args
+      @param description: A short description of the animation
+      @param animate: The recurring animation that is invoked
+      @param trigger: The transient animation that is invoked
   ###
-  makeAnimation: (args) ->
+  makeAnimation: (index, args) ->
     tiles = @tiles
-    tile = tiles[args.vertex]
+    tile = tiles[index]
 
     # Update the animating flag in tiles object for display
     tile.animating = true
 
+    # Invoked as a recurring animation
     if args.animate?
       @animations.push
         description: args.description or null
@@ -115,12 +121,12 @@ class Map
 
           # Move object geometry
           tile.object.position.copy tile.position
-          #tile.object.verticesNeedUpdate = true
 
           # Move all objects attached to tile
           _.forOwn tile.attachments, (attachment, key) ->
             attachment.position.copy tile.position
 
+    # Invoked as a transient animation
     if args.trigger?
       @animations.push
         description: args.description or null
@@ -135,7 +141,6 @@ class Map
 
           # Move object geometry
           tile.object.position.copy tile.position
-          #tile.object.verticesNeedUpdate = true
 
           # Move all objects attached to tile
           _.forOwn tile.attachments, (attachment, key) ->
@@ -147,20 +152,24 @@ class Map
     INTERACTION STUFF: Helper function for interactives
     @param index: the index of the tile that the user
                   interacts with
-    @param fn: the callback function
-    @param type:
-        'click': triggers callback on click
-        'trigger': triggers callback on stepping on tile
+    @params args
+      @param fn: the callback function that is called 
+                 upon the interaction
+      @param type:
+          'click': triggers callback on click
+          'trigger': triggers callback on stepping on tile
   ###
-  onInteract: (index, type, fn) ->
-    @tiles[index].interactive = type
+  onInteract: (index, args) ->
+
+    # Set default arguments
+    fn = args.callback or null
+    @tiles[index].interactive = type = args.type or 'click'
 
     # Execute this function upon interaction
     @tiles[index].object.interaction = fn or null
 
     if type is 'click'
-      # By default, make interactive objects not walkable
-      # TODO: make customisable?
+      # By default, make clickable types not walkable
       @tiles[index].walkable = false
 
     return

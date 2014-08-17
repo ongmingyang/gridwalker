@@ -505,12 +505,17 @@ Map = (function() {
   /*
     Helper function that passes animations into an instance array
     that will later be iterated through by the animator object
+    @param index: The vertex that the animation is applied to
+    @params args
+      @param description: A short description of the animation
+      @param animate: The recurring animation that is invoked
+      @param trigger: The transient animation that is invoked
    */
 
-  Map.prototype.makeAnimation = function(args) {
+  Map.prototype.makeAnimation = function(index, args) {
     var tile, tiles;
     tiles = this.tiles;
-    tile = tiles[args.vertex];
+    tile = tiles[index];
     tile.animating = true;
     if (args.animate != null) {
       this.animations.push({
@@ -548,14 +553,18 @@ Map = (function() {
     INTERACTION STUFF: Helper function for interactives
     @param index: the index of the tile that the user
                   interacts with
-    @param fn: the callback function
-    @param type:
-        'click': triggers callback on click
-        'trigger': triggers callback on stepping on tile
+    @params args
+      @param fn: the callback function that is called 
+                 upon the interaction
+      @param type:
+          'click': triggers callback on click
+          'trigger': triggers callback on stepping on tile
    */
 
-  Map.prototype.onInteract = function(index, type, fn) {
-    this.tiles[index].interactive = type;
+  Map.prototype.onInteract = function(index, args) {
+    var fn, type;
+    fn = args.callback || null;
+    this.tiles[index].interactive = type = args.type || 'click';
     this.tiles[index].object.interaction = fn || null;
     if (type === 'click') {
       this.tiles[index].walkable = false;

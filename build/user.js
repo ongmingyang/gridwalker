@@ -82,92 +82,98 @@
 
   map.link(19, 20, "north");
 
-  map.onInteract(20, 'click', function(n) {
-    return window.narrator.narrate("win!!!!");
-  });
-
-  map.onInteract(3, 'trigger', function(n) {
-    return window.narrator.narrate("There's nothing back this way");
-  });
-
-  map.onInteract(12, 'click', function(n) {
-    if (n === 0) {
-      window.narrator.narrate("I wonder what this does!");
+  map.onInteract(20, {
+    type: 'click',
+    callback: function(n) {
+      return window.narrator.narrate("win!!!!");
     }
-    map.freezeInteraction(12);
-    map.makeAnimation({
-      description: "This slides the orange block to the left so that the player can step across to the next platform from the west path",
-      vertex: 6,
-      trigger: function(vertex, t, controls) {
-        if (controls.triggered) {
-          map.unlink(6, 7);
-          map.unlink(6, 5);
-          map.unlink(6, 16);
-          map.unlink(6, 17);
-        }
-        if (n % 2 === 0) {
-          vertex.z = -2 * t;
-        }
-        if (n % 2 === 1) {
-          vertex.z = -10 + 2 * t;
-        }
-        if (vertex.z < -10) {
-          vertex.z = -10;
-          map.link(6, 16, "west");
-          map.link(6, 17, "north");
-          map.unfreezeInteraction(12);
-          controls.done();
-        }
-        if (vertex.z > 0) {
-          vertex.z = 0;
-          map.link(6, 7, "east");
-          map.link(6, 5, "south");
-          map.unfreezeInteraction(12);
-          return controls.done();
-        }
+  });
+
+  map.onInteract(3, {
+    type: 'trigger',
+    callback: function(n) {
+      return window.narrator.narrate("There's nothing back this way");
+    }
+  });
+
+  map.onInteract(12, {
+    type: 'click',
+    callback: function(n) {
+      if (n === 0) {
+        window.narrator.narrate("I wonder what this does!");
       }
-    });
-    return map.makeAnimation({
-      description: "This slides the northmost orange block to the right so that the player is prevented from stepping across to the next platform from the west path",
-      vertex: 19,
-      trigger: function(vertex, t, controls) {
-        if (controls.triggered) {
-          map.unlink(19, 18);
-          map.unlink(19, 20);
-        }
-        if (n % 3 === 0) {
-          vertex.z = 2 * t;
-          vertex.y = 4 + t;
-          if (vertex.z > 10) {
-            vertex.z = 10;
+      map.freezeInteraction(12);
+      map.makeAnimation(6, {
+        description: "This slides the orange block to the left so that the player can step across to the next platform from the west path",
+        trigger: function(vertex, t, controls) {
+          if (controls.triggered) {
+            map.unlink(6, 7);
+            map.unlink(6, 5);
+            map.unlink(6, 16);
+            map.unlink(6, 17);
+          }
+          if (n % 2 === 0) {
+            vertex.z = -2 * t;
+          }
+          if (n % 2 === 1) {
+            vertex.z = -10 + 2 * t;
+          }
+          if (vertex.z < -10) {
+            vertex.z = -10;
+            map.link(6, 16, "west");
+            map.link(6, 17, "north");
+            map.unfreezeInteraction(12);
             controls.done();
           }
-        }
-        if (n % 3 === 1) {
-          vertex.z = 10;
-          vertex.y = 9 - 2 * t;
-          if (vertex.y < -1) {
-            controls.done();
-          }
-        }
-        if (n % 3 === 2) {
-          vertex.y = -1 + t;
-          vertex.z = 10 - 2 * t;
-          if (vertex.z < 0) {
+          if (vertex.z > 0) {
             vertex.z = 0;
-            vertex.y = 4;
-            map.link(18, 19, "east");
-            map.link(19, 20, "north");
+            map.link(6, 7, "east");
+            map.link(6, 5, "south");
+            map.unfreezeInteraction(12);
             return controls.done();
           }
         }
-      }
-    });
+      });
+      return map.makeAnimation(19, {
+        description: "This slides the northmost orange block to the right so that the player is prevented from stepping across to the next platform from the west path",
+        trigger: function(vertex, t, controls) {
+          if (controls.triggered) {
+            map.unlink(19, 18);
+            map.unlink(19, 20);
+          }
+          if (n % 3 === 0) {
+            vertex.z = 2 * t;
+            vertex.y = 4 + t;
+            if (vertex.z > 10) {
+              vertex.z = 10;
+              controls.done();
+            }
+          }
+          if (n % 3 === 1) {
+            vertex.z = 10;
+            vertex.y = 9 - 2 * t;
+            if (vertex.y < -1) {
+              controls.done();
+            }
+          }
+          if (n % 3 === 2) {
+            vertex.y = -1 + t;
+            vertex.z = 10 - 2 * t;
+            if (vertex.z < 0) {
+              vertex.z = 0;
+              vertex.y = 4;
+              map.link(18, 19, "east");
+              map.link(19, 20, "north");
+              return controls.done();
+            }
+          }
+        }
+      });
+    }
   });
 
-  map.makeAnimation({
+  map.makeAnimation(14, {
     description: "Tile moves up and down and disconnects player at some points",
-    vertex: 14,
     animate: function(vertex, t) {
       vertex.y = 4 + 5 * Math.sin(t % 62.83);
       if (vertex.y <= 0) {
